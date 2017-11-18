@@ -1,0 +1,24 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    aasm (4.12.3)
+      concurrent-ruby (~> 1.0)
+    beaglebone (1.2.7)
+    concurrent-ruby (1.0.5)
+    minitest (5.10.3)
+    rake (12.2.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  aasm
+  beaglebone
+  minitest
+  rake
+
+RUBY VERSION
+   ruby 2.3.1p112
+
+BUNDLED WITH
+   1.16.0
