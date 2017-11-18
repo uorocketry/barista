@@ -5,3 +5,5 @@ gem 'aasm'
 gem 'beaglebone'
 
 gem 'minitest'
+
+gem 'rake'
