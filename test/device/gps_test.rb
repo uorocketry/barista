@@ -1,9 +1,14 @@
-class Device::GPS
-  include Beaglebone
+require 'minitest/autorun'
+require_relative '../app/device/gps'
 
-  def read
+class GpsTest < MiniTest::Test
+
+  def setup
   end
 
-  def write
+  def test_read
+  end
+
+  def test_write
   end
 end

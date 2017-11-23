@@ -1,9 +1,14 @@
-class Device::IMU
-  include Beaglebone
+require 'minitest/autorun'
+require_relative '../app/device/imu'
 
-  def read
+class ImuTest < MiniTest::Test
+
+  def setup
   end
 
-  def write
+  def test_read
+  end
+
+  def test_write
   end
 end

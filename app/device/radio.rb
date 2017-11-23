@@ -1,3 +1,5 @@
+require 'beaglebone'
+
 class Device::Radio
   include Beaglebone
 

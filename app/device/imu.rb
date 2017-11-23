@@ -1,3 +1,5 @@
+require 'beaglebone'
+
 class Device::IMU
   include Beaglebone
 

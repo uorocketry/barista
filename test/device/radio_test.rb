@@ -1,9 +1,14 @@
-class Device::Radio
-  include Beaglebone
+require 'minitest/autorun'
+require_relative '../app/device/radio'
 
-  def read
+class RadioTest < MiniTest::Test
+
+  def setup
   end
 
-  def write
+  def test_read
+  end
+
+  def test_write
   end
 end

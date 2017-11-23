@@ -1,3 +1,5 @@
+require 'aasm'
+
 class Rocket
   include AASM
 
@@ -23,12 +25,12 @@ class Rocket
     end
 
     event :touchdown do
-      transitions from: [:descent_drogue, :descent_main], to: :ground,
+      transitions from: [:descent_drogue, :descent_main], to: :ground
     end
 
     state :idle
     event :sleep do
-      transitions from: :ground, to: :power_saver,
+      transitions from: :ground, to: :power_saver
     end
   end
 end
