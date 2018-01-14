@@ -1,0 +1,3 @@
+pyserial
+transitions
+Adafruit_BBIO
