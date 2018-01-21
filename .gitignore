@@ -2,4 +2,5 @@
 *.pyc
 *.cache
 *__pycache__/
+*.save
 *.pytest_cache
