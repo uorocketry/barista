@@ -1,25 +1,24 @@
-import Adafruit_BBIO.UART as UART
 from time import sleep
 import serial
+import logging
 
 class GPS(object):
     def __init__(self):
-        UART.setup("UART1")
-        self.ser = serial.Serial(port = '/dev/ttyO1', baudrate=9600)
-        self.set_baud_rate(57600)
+        self.ser = serial.Serial(port = '/dev/ttyAMA0', baudrate=9600)
         self.set_data_rate(0.2)
         self.set_datatype("GPRMC_GPGGA")
 
         sleep(1)
         self.ser.flushInput()
-        print "GPS Initialized"
+        logging.info('GPS Initialized')
+
 
     def read(self):
-        print "Starting read"
         self.ser.flushInput()
 
         data1 = self.ser.readline().split(',')
         data2 = self.ser.readline().split(',')
+        raw_data = {}
 
         if data1[0] == "$GPRMC":
             raw_data["GPRMC"] = data1[1:]
@@ -27,8 +26,12 @@ class GPS(object):
         else:
             raw_data["GPRMC"] = data2[1:]
             raw_data["GPGGA"] = data1[1:]
+        try:
+            return GPS.parse_raw_data(raw_data)
+        except Exception as e:
+            logging.error('error: {}, raw_data: {}'.format(e, raw_data))
+            return { 'fix': False, 'satalites': 0 }
 
-        return parse_raw_data(raw_data)
 
     def set_data_rate(self, rate):
         UPDATE_RATE_MAPPINGS = {
@@ -47,8 +50,9 @@ class GPS(object):
             print "WARNING: %s is not a valid datarate" % rate
 
         self.ser.write(UPDATE_RATE_MAPPINGS[rate])
-        #sleep(1)
+        sleep(1)
         self.ser.write(MEASURE_RATE_MAPPINGS[rate])
+
 
     def set_baud_rate(self, rate):
         BAUD_RATE_MAPPINGS = {
@@ -63,6 +67,7 @@ class GPS(object):
         self.ser.baudrate = rate
         self.ser.timeout = 2 * rate
 
+
     def set_datatype(self, datatype):
         DATATYPE_MAPPINGS = {
             "GPRMC_GPGGA": "$PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n",
@@ -75,24 +80,29 @@ class GPS(object):
 
         self.ser.write(DATATYPE_MAPPINGS[datatype])
 
-    @classmethod
+
+    @staticmethod
     def parse_raw_data(raw_data):
         data = {}
-        data['fix'] = int(raw_data["GPGGA"][5])
-        data['sats'] = raw_data["GPGGA"][6]
+        data['fix'] = bool(int(raw_data["GPGGA"][5])) if raw_data["GPGGA"][5] else False
+        data['satelites'] = int(raw_data["GPGGA"][6]) if raw_data["GPGGA"][6] else 0
 
-        if not raw_data["fix"]:
+        if not data["fix"]:
             return data
 
-        data['altitude'] = float(raw_data["GPGGA"][8]) # meters
-        data['time']= 1000 * ( int(raw_data['GPRMC'][8][0:2])*86400 + # milliseconds
-                               int(raw_data['GPRMC'][0][0:2])*3600 +
-                               int(raw_data['GPRMC'][0][2:4])*60 +
-                               float(raw_data['GPRMC'][0][4:])
-                             )
-        data['latitude'] = raw_data['GPRMC'][2] + raw_data['GPRMC'][3]
-        data['longitude'] = raw_data['GPRMC'][4] + raw_data['GPRMC'][5]
-        data['ground_speed'] = raw_data['GPRMC'][6] # knots
+        data['altitude (ASL)'] = float(raw_data["GPGGA"][8]) # meters
+        data['time (UTC)']= raw_data['GPRMC'][8][0:2] + ':' + raw_data['GPRMC'][0][2:4] + ':' + raw_data['GPRMC'][0][4:6]
+
+        data['latitude (deg)'] = float(raw_data['GPRMC'][2][0:3])
+        data['latitude (min)'] = float(raw_data['GPRMC'][2][3:9])
+        data['latitude (dir)'] = raw_data['GPRMC'][3]
+
+        data['longitude (deg)'] = float(raw_data['GPRMC'][4][0:3])
+        data['longitude (min)'] = float(raw_data['GPRMC'][4][3:9])
+        data['longitude (dir)'] = raw_data['GPRMC'][5]
+
+        data['ground_speed'] = round(float(raw_data['GPRMC'][6]) * 0.514, 3)# m/s
+
         return data
 
 if __name__ == '__main__':
