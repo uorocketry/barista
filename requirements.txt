@@ -1,3 +1,4 @@
 pytest
 serial
 transitions
+smbus

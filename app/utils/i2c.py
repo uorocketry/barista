@@ -1,27 +1,25 @@
 from smbus import SMBus
 import numpy as np
 
+
 class I2C(object):
     def __init__(self, bus_number, device_address):
         self.smbus = SMBus(bus_number)
         self.device_address =  device_address
 
-    def set_bit(self,register, index):
-        read_value = self.smbus.read_byte_data(self.device_address, register)
-        eight_bit_read_value = list(format(read_value, '08b'))
-        eight_bit_read_value[index*(-1)-1] = '1'
-        string = bytearray("".join(eight_bit_read_value))
 
-        self.smbus.write_byte_data(self.device_address,register, int(string))
+    def set_bit(self,register, index):
+        read_value = np.uint8(self.smbus.read_byte_data(self.device_address, register))
+        bit_array = np.unpackbits(read_value)
+        bit_array[index*-1-1] = 1
+        self.smbus.write_byte_data(self.device_address,register, np.packbits(bit_array))
 
 
     def clear_bit(self,register, index):
-        read_value = self.smbus.read_byte_data(self.device_address, register)
-        eight_bit_read_value = list(format(read_value, '08b'))
-        eight_bit_read_value[index*(-1)-1] = '0'
-        string = bytearray("".join(eight_bit_read_value))
-
-        self.smbus.write_byte_data(self.device_address,register, int(string))
+        read_value = np.uint8(self.smbus.read_byte_data(self.device_address, register))
+        bit_array = np.unpackbits(read_value)
+        bit_array[index*-1-1] = 0
+        self.smbus.write_byte_data(self.device_address,register, np.packbits(bit_array))
 
 
     def read_bit(self,register, index):
