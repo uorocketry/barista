@@ -1,5 +1,4 @@
-from smbus import SMBus
-from math  import log1p
+from app.utils.i2c import I2C
 
 class Altimeter (object):
 
@@ -17,9 +16,10 @@ class Altimeter (object):
     PT_DATA_CFG = 0x13
     BAR_IN_MSB = 0x14
 
-    bus = SMBus(1)
+    bus = I2C(1, MPL3115A2_ADDRESS)
 
     def __init__(self):
+
         #Check if device is connected
         #whois = bus.read_byte_data(self.MPL3115A2_ADDRESS, self.WHOAMI)
         #if(id!=0xc4):
@@ -27,17 +27,17 @@ class Altimeter (object):
         #    exit(1)
 
         #Set oversample rate to 128
-        current_setting = self.bus.read_byte_data(self.MPL3115A2_ADDRESS, self.CTRL_REG1)
+        current_setting = self.bus.read_byte(self.MPL3115A2_ADDRESS, self.CTRL_REG1)
         new_setting = 0xb8
-        self.bus.write_byte_data(self.MPL3115A2_ADDRESS, self.CTRL_REG1, new_setting)
+        self.bus.write_byte(self.MPL3115A2_ADDRESS, self.CTRL_REG1, new_setting)
 
         # Enable event flags
-        self.bus.write_byte_data(self.MPL3115A2_ADDRESS, self.PT_DATA_CFG, self.OUT_P_DELTA_MSB)
+        self.bus.write_byte(self.MPL3115A2_ADDRESS, self.PT_DATA_CFG, self.OUT_P_DELTA_MSB)
 
         # Toggel One Shot
-        setting = self.bus.read_byte_data(self.MPL3115A2_ADDRESS, self.CTRL_REG1)
+        setting = self.bus.read_byte(self.MPL3115A2_ADDRESS, self.CTRL_REG1)
         if (setting & 0x02) == 0:
-            self.bus.write_byte_data(self.MPL3115A2_ADDRESS, self.CTRL_REG1, (setting | 0x02))
+            self.bus.write_byte(self.MPL3115A2_ADDRESS, self.CTRL_REG1, (setting | 0x02))
 
     # @staticmethod
     # def read_temperature(self):
@@ -62,7 +62,7 @@ class Altimeter (object):
     #Reads the altimeter's altitude register
     #Returns byte array
     def read(self):
-        raw_data = self.bus.read_i2c_block_data(self.MPL3115A2_ADDRESS, self.OUT_P_MSB, 3)
+        raw_data = self.bus.read_block(self.MPL3115A2_ADDRESS, self.OUT_P_MSB, 3)
         return Altimeter.parse_raw_data(raw_data)
 
 
@@ -71,21 +71,21 @@ class Altimeter (object):
     #Returns byte array
     #Whole function here for testing
     def read_bar_setting(self):
-        setting = self.bus.read_i2c_block_data(self.MPL3115A2_ADDRESS, self.BAR_IN_MSB, 2)
+        setting = self.bus.read_block(self.MPL3115A2_ADDRESS, self.BAR_IN_MSB, 2)
         print("Current \t" + str(setting))
         return setting
 
 
     #Writes to the altimeter's Barometic Input register
-    #Takes byte array as input
+    #Takes number as input
     #Returns boolean, will eventually throw exception
     def write_bar_setting(self, input):
-        #Will write 16 bits, starting at BAR_IN_MSB(8 bit) and over into
-        #BAR_IN_LSB (not defined in this program)
-        self.bus.write_i2c_block_data(self.MPL3115A2_ADDRESS, self.BAR_IN_MSB, input)
+        hex_input = hex(input)
+
+        self.bus.write_block(self.MPL3115A2_ADDRESS, self.BAR_IN_MSB, input)
         setting = self.read_bar_setting()
-        print("New: \t" + str(setting)      #Here for testing
-        return(setting == input)
+        print("New: \t" + str(setting))
+        return (setting == input)
 
 
 
