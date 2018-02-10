@@ -2,6 +2,8 @@ from app.utils.i2c import I2C
 from time import sleep
 from time import time
 import numpy as np
+import logging
+
 
 
 ADDRESS = 0x53
@@ -36,10 +38,22 @@ class Accelerometer(object):
         self.i2c.write_byte(BW_RATE, 0b00001111)
         #setting the device to measure
         self.i2c.set_bit(POWER_CTL, 3)
+        logging.info('Accelerometer Initialized')
 
 
     def read(self):
-        return Accelerometer.parse_raw_data(self.i2c.read_block(DATAX0,6))
+        raw_data = self.i2c.read_block(DATAX0,6)
+        try:
+            return Accelerometer.parse_raw_data(raw_data)
+        except Exception as e:
+            logging.error('error: {}, raw_data: {}'.format(e, raw_data))
+            return {
+                'x': 0,
+                'y': 0,
+                'z': 0,
+                'time':time()
+            }
+
 
 
     def sleep(self):
