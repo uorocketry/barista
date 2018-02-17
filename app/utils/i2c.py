@@ -1,3 +1,11 @@
+# Replace libraries by fake ones
+import sys
+import fake_rpi
+
+sys.modules['RPi'] = fake_rpi.RPi     # Fake RPi (GPIO)
+sys.modules['smbus'] = fake_rpi.smbus # Fake smbus (I2C)
+
+
 from smbus import SMBus
 import numpy as np
 
@@ -36,5 +44,8 @@ class I2C(object):
         return self.smbus.read_byte_data(self.device_address,register)
 
 
-    def read_block(self,register, number_to_read):
+    def read_block(self, register, number_to_read):
         return self.smbus.read_i2c_block_data(self.device_address, register, number_to_read)
+
+    def write_block(self, register, data_to_read):
+        return self.smbus.write_i2c_block_data(self.device_address, register, data_to_read)
