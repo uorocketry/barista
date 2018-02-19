@@ -60,14 +60,20 @@ class Altimeter (object):
         return (setting == input)
 
 
-
     @staticmethod
     def parse_raw_data(raw_data):
-        alt_int_bin = raw_data[0] + raw_data[1] + raw_data[2][0] + raw_data[2][1]
-        alt_frac_bin = raw_data[2][2] + raw_data[2][3]
+        alt_int = 0
+        alt_frac = 0
+        alt_int_bin = raw_data[0] + raw_data[1] + raw_data[2][0] + raw_data[2][1] + raw_data[2][2] + raw_data[2][3]
+        alt_frac_bin = raw_data[2][4] + raw_data[2][5] + raw_data[2][6] + raw_data[2][7]
 
-        alt_int = 262144-int(alt_bin,2) + 1
-        alt_frac = (3-int(alt_frac_bin,2) +1)/4.0
-        #Pressure integer part
-        altitude = alt_int + alt_frac
-        return altitude
+        alt_frac = int(alt_frac_bin,2)/16
+
+        if(alt_int_bin[0][0] == '1'):
+            alt_int = -1*(65536 - int(alt_int_bin, 2))
+            alt_frac = -1*alt_frac
+        else:
+            alt_int = int(alt_int_bin,2)
+            
+        alt = alt_int + alt_frac
+        return alt
