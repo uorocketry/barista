@@ -47,17 +47,17 @@ class Altimeter (object):
 
     def read_bar_setting(self):
         setting = self.bus.read_block(MPL3115A2_ADDRESS, BAR_IN_MSB, 2)
-        print("Current \t" + str(setting))
-        return setting
+        return (parse_raw_data(setting))*2
 
 
 
+    #Parameter is bar setting/2
     def write_bar_setting(self, input):
-        hex_input = hex(input)
-        self.bus.write_block(MPL3115A2_ADDRESS, BAR_IN_MSB, input)
-        setting = read_bar_setting()
-        print("New: \t" + str(setting))
-        return (setting == input)
+        if(input < 0 || input > 131071):
+            raise ValueError("Input out of acceptable bounds.")
+        else:
+            self.bus.write_block(MPL3115A2_ADDRESS, BAR_IN_MSB, int(input))
+            setting = read_bar_setting()
 
 
     @staticmethod
@@ -74,6 +74,6 @@ class Altimeter (object):
             alt_frac = -1*alt_frac
         else:
             alt_int = int(alt_int_bin,2)
-            
+
         alt = alt_int + alt_frac
         return alt
