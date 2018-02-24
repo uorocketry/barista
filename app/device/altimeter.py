@@ -1,5 +1,6 @@
 from app.utils.i2c import I2C
 from time import sleep
+import logging
 
 MPL3115A2_ADDRESS = 0x60
 STATUS = 0x00
@@ -15,8 +16,8 @@ BAR_IN_MSB = 0x14
 class Altimeter (object):
 
     def __init__(self):
-
-        while(True):
+        tries = 0;
+        while(tries < 5):
             try:
                 self.bus = I2C(1, MPL3115A2_ADDRESS)
                 #Set oversample rate to 128
@@ -26,8 +27,14 @@ class Altimeter (object):
                 break
 
             except IOError:
-                print("Device not connected.")
+                logging.error("error: Could not connect to Altimeter.  Retrying.")
+                tries++
                 sleep(3)
+
+        if(tries >= 5):
+            logging.error("error: Could not connect to Altimeter. Max limit of retries reached.")
+            raise IOError("Could not connect to the device.")
+
 
         # Enable event flags
         self.bus.write_byte(MPL3115A2_ADDRESS, PT_DATA_CFG, OUT_P_DELTA_MSB)
@@ -41,13 +48,23 @@ class Altimeter (object):
 
     def read(self):
         raw_data = self.bus.read_block(MPL3115A2_ADDRESS, OUT_P_MSB, 3)
-        return Altimeter.parse_raw_data(raw_data)
+        try:
+            return Altimeter.parse_raw_data(raw_data)
+
+        except Exception as e:
+            logging.error('error: {}, raw_data: {}'.format(e, raw_data))
+            return (-1)
 
 
 
     def read_bar_setting(self):
         setting = self.bus.read_block(MPL3115A2_ADDRESS, BAR_IN_MSB, 2)
-        return (parse_raw_data(setting))*2
+        try:
+            return (parse_raw_data(setting))*2
+
+    except Exception as e:
+        logging.error('error: {}, raw_data: {}'.format(e, raw_data))
+        return(-1)
 
 
 
