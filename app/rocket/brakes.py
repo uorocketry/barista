@@ -1,8 +1,15 @@
-require 'beaglebone'
+from app.utils.servo import Servo
 
-class Rocket::Brakes
-  include Beaglebone
+SERVO_PIN = 18 # physical pin 12
 
-  def deploy(percentage)
-  end
-end
+class Brakes(object):
+    def __init__(self):
+        self.percentage = 0
+        self.servo = Servo(SERVO_PIN)
+        self.servo.write(0)
+
+    def deploy(percentage):
+        self.percentage = percentage
+        # TODO better conversion from area exposed to servo angle
+        servo_position = percentage * 180
+        self.servo.write(servo_position)
