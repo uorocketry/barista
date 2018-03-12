@@ -29,6 +29,45 @@ class DummyAccelerometer(object):
         self.sleeping = False
 
 
+class DummyAltimeter(object):
+    def __init__(self):
+        self.sleeping = False
+        self.bar_setting = 1.019
+
+    def read(self):
+        return round(random.uniform(-100,2000),4),
+
+    def get_bar_setting(self):
+        return self.bar_setting
+
+    def set_bar_setting(self, bar_setting):
+        self.bar_setting = bar_setting
+
+
+    def sleep(self):
+        self.sleeping = True
+
+    def wake(self):
+        self.sleeping = False
+
+
+class DummyRadio(object):
+    def __init__(self):
+        self.sleeping = False
+
+    def receive(self):
+        return { 'action': None, 'data': [] }
+
+    def transmit(self, message):
+        pass
+
+    def sleep(self):
+        self.sleeping = True
+
+    def wake(self):
+        self.sleeping = False
+
+
 class DummyGPS(object):
     def read(self):
         return {
@@ -45,6 +84,11 @@ class DummyGPS(object):
             'ground_speed': 11.514
         }
 
+    def sleep(self):
+        self.sleeping = True
+
+    def wake(self):
+        self.sleeping = False
 
 class DummyGyro(object):
     def __init__(self):
@@ -76,25 +120,47 @@ class DummyGyro(object):
 class DummyParachute(object):
     def __init__(self):
         self.logger = logging.getLogger()
+        self.deployed_stage_one = False
+        self.deployed_stage_two = False
 
     def deploy_stage_one(self):
         self.logger.info('Deployed Stage One')
+        self.deployed_stage_one = True
 
     def deploy_stage_two(self):
         self.logger.info('Deployed Stage Two')
-
+        self.deployed_stage_two = True
 
 class DummyBrakes(object):
     def __init__(self):
         self.logger = logging.getLogger()
+        self.percentage = 0.0
 
     def deploy(self, percentage):
         self.logger.info('Deployed Barkes %f%', percentage)
+        self.percentage = percentage
 
 
 class DummyDeviceFactory(object):
     def __init__(self):
         self.accelerometer = DummyAccelerometer()
+        self.altimeter = DummyAltimeter()
         self.gps = DummyGPS()
         self.gyro = DummyGyro()
         self.parachute = DummyParachute()
+        self.brakes = DummyBrakes()
+        self.radio = DummyRadio()
+
+    def sleep_all(self):
+        self.accelerometer.sleep()
+        self.altimeter.sleep()
+        self.gps.sleep()
+        self.gyro.sleep()
+        self.radio.sleep()
+
+    def wake_all(self):
+        self.accelerometer.wake()
+        self.altimeter.wake()
+        self.gps.wake()
+        self.gyro.wake()
+        self.radio.wake()
