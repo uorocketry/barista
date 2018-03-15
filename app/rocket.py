@@ -13,5 +13,6 @@ class Rocket(object):
         { 'trigger': 'wake', 'source': 'asleep', 'dest': 'ground' }
     ]
 
-    def __init__(self):
+    def __init__(self, device_factory):
+        self.device_factory = device_factory
         self.state_machine = Machine(model=self, states=Rocket.states, transitions=Rocket.transitions, initial='ground')

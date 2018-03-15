@@ -1,6 +1,5 @@
 from app.utils.i2c import I2C
-from time import sleep
-from time import time
+from time import sleep, time
 import numpy as np
 import logging
 
@@ -68,7 +67,6 @@ class Accelerometer(object):
 
     @staticmethod
     def parse_raw_data(raw_data):
-
         xyz = np.int16([
             raw_data[1] << 8 | raw_data[0],
             raw_data[3] << 8 | raw_data[2],

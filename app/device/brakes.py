@@ -8,7 +8,7 @@ class Brakes(object):
         self.servo = Servo(SERVO_PIN)
         self.servo.write(0)
 
-    def deploy(percentage):
+    def deploy(self, percentage):
         self.percentage = percentage
         # TODO better conversion from area exposed to servo angle
         servo_position = percentage * 180

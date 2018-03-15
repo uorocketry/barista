@@ -1,4 +1,6 @@
-import RPi.GPIO as GPIO
+import os
+if os.environ.has_key('ROCKET_PRODUCTION'):
+    import RPi.GPIO as GPIO
 
 FREQUENCY = 100 # Hz
 MINIMUM_DUTY_CYCLE = FREQUENCY * 0.001
