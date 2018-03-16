@@ -6,10 +6,11 @@ from app.device.brakes import Brakes
 from app.device.gps import GPS
 from app.device.gyro import Gyro
 from app.device.parachute import Parachute
+from app.device.altimeter import Altimeter
 
 from app.rocket.device_factory import DeviceFactory
 
-@patch.object(Altimeter, '__inti__')
+@patch.object(Altimeter, '__init__')
 @patch.object(Accelerometer, '__init__')
 @patch.object(Brakes, '__init__')
 @patch.object(GPS, '__init__')
