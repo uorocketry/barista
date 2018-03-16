@@ -9,12 +9,14 @@ from app.device.parachute import Parachute
 
 from app.rocket.device_factory import DeviceFactory
 
+@patch.object(Altimeter, '__inti__')
 @patch.object(Accelerometer, '__init__')
 @patch.object(Brakes, '__init__')
 @patch.object(GPS, '__init__')
 @patch.object(Gyro, '__init__')
 @patch.object(Parachute, '__init__')
-def test_init_creates_one_of_each_device(accelerometer_mock, brakes_mock, gps_mock, gyro_mock, parachute_mock):
+def test_init_creates_one_of_each_device(altimeter_mock, accelerometer_mock, brakes_mock, gps_mock, gyro_mock, parachute_mock):
+    altimeter_mock.return_value = None
     accelerometer_mock.return_value = None
     brakes_mock.return_value = None
     gps_mock.return_value = None
@@ -23,6 +25,7 @@ def test_init_creates_one_of_each_device(accelerometer_mock, brakes_mock, gps_mo
 
     device_factory = DeviceFactory()
 
+    assert altimeter_mock.called
     assert accelerometer_mock.called
     assert brakes_mock.called
     assert gps_mock.called

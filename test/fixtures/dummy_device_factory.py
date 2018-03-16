@@ -2,6 +2,10 @@ import time
 import random
 import logging
 
+class DummyAltimeter(object):
+    def read(self):
+        return round(random.uniform(-100,10000),1)
+
 class DummyAccelerometer(object):
     def __init__(self):
         self.sleeping = False
@@ -94,6 +98,7 @@ class DummyBrakes(object):
 
 class DummyDeviceFactory(object):
     def __init__(self):
+        self.altimeter = DummyAltimeter()
         self.accelerometer = DummyAccelerometer()
         self.gps = DummyGPS()
         self.gyro = DummyGyro()
