@@ -13,65 +13,54 @@ CTRL_REG1 = 0x26
 PT_DATA_CFG = 0x13
 BAR_IN_MSB = 0x14
 
-class Altimeter (object):
+CONNECTION_RETRY_LIMIT = 5
 
+class Altimeter(object):
     def __init__(self):
-        tries = 0;
-        while(tries < 5):
+        tries = 0
+        while tries < CONNECTION_RETRY_LIMIT:
             try:
                 self.bus = I2C(1, MPL3115A2_ADDRESS)
                 #Set oversample rate to 128
                 current_setting = self.bus.read_byte(CTRL_REG1)
                 new_setting = 0xb8
                 self.bus.write_byte(MPL3115A2_ADDRESS, CTRL_REG1, new_setting)
-                break
-
             except IOError:
-                logging.error("error: Could not connect to Altimeter.  Retrying.")
-                tries++
+                tries += 1
+                logging.error('Could not connect to Altimeter. Retry %i', tries)
                 sleep(3)
 
-        if(tries >= 5):
-            logging.error("error: Could not connect to Altimeter. Max limit of retries reached.")
-            raise IOError("Could not connect to the device.")
+        if tries >= CONNECTION_RETRY_LIMIT:
+            raise IOError('Could not connect to Altimeter')
 
-
-        # Enable event flags
         self.bus.write_byte(MPL3115A2_ADDRESS, PT_DATA_CFG, OUT_P_DELTA_MSB)
-
-        # Toggel One Shot
         setting = self.bus.read_byte(MPL3115A2_ADDRESS, CTRL_REG1)
+
         if (setting & 0x02) == 0:
             self.bus.write_byte(MPL3115A2_ADDRESS, CTRL_REG1, (setting | 0x02))
-
-
 
     def read(self):
         raw_data = self.bus.read_block(MPL3115A2_ADDRESS, OUT_P_MSB, 3)
         try:
             return Altimeter.parse_raw_data(raw_data)
-
         except Exception as e:
-            logging.error('error: {}, raw_data: {}'.format(e, raw_data))
-            return (-1)
-
-
+            logging.error('error: %s, raw_data: %s', e, raw_data)
+            return 0
 
     def read_bar_setting(self):
         setting = self.bus.read_block(MPL3115A2_ADDRESS, BAR_IN_MSB, 2)
         try:
-            return (parse_raw_data(setting))*2
-
-    except Exception as e:
-        logging.error('error: {}, raw_data: {}'.format(e, raw_data))
-        return(-1)
+            return parse_raw_data(setting)*2
+        except Exception as e:
+            logging.error('error: %s, raw_data: %s', e, raw_data)
+            return(-1)
 
 
 
     #Parameter is bar setting/2
     def write_bar_setting(self, input):
-        if(input < 0 || input > 131071):
-            raise ValueError("Input out of acceptable bounds.")
+        if input < 0 or input > 131071:
+            raise ValueError('Input out of acceptable bounds.')
         else:
             self.bus.write_block(MPL3115A2_ADDRESS, BAR_IN_MSB, int(input))
             setting = read_bar_setting()

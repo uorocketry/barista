@@ -1,4 +1,4 @@
-from smbus import SMBus
+from smbus2 import SMBus
 import numpy as np
 
 
@@ -40,5 +40,5 @@ class I2C(object):
         return self.smbus.read_i2c_block_data(self.device_address, register, number_to_read)
 
 
-    def wryte_block(self,start_register, number_to_write):
+    def write_block(self,start_register, number_to_write):
         return self.smbus.write_i2c_block_data(self.device_address, start_register, number_to_write)

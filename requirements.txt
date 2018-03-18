@@ -1,4 +1,5 @@
 pytest
 serial
 transitions
-smbus
+smbus2
+RPi.GPIO

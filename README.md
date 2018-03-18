@@ -42,3 +42,8 @@ compiles all DLLs
 >>> test [test_path]
 ```
 runs all unit tests, optionally runs [test_path]
+
+![GPIO Table](https://user-images.githubusercontent.com/20449016/37495195-90010624-2882-11e8-9af0-49d14d96c58d.PNG
+)
+
+

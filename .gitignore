@@ -4,3 +4,5 @@
 *__pycache__/
 *.save
 *.pytest_cache
+
+*.ipynb-checkpoints/
