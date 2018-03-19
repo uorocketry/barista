@@ -70,13 +70,17 @@ class Altimeter(object):
     def parse_raw_data(raw_data):
         alt_int = 0
         alt_frac = 0
-        alt_int_bin = raw_data[0] + raw_data[1] + raw_data[2][0] + raw_data[2][1] + raw_data[2][2] + raw_data[2][3]
-        alt_frac_bin = raw_data[2][4] + raw_data[2][5] + raw_data[2][6] + raw_data[2][7]
+        str_msb = '{0:08b}'.format(raw_data[0])
+        str_csb = '{0:08b}'.format(raw_data[1])
+        str_lsb = '{0:08b}'.format(raw_data[2])
+
+        alt_int_bin = str_msb + str_csb + str_lsb[0] + str_lsb[1] + str_lsb[2] + str_lsb[3]
+        alt_frac_bin = str_lsb[4] + str_lsb[5] + rstr_lsb[6] + str_lsb[7]
 
         alt_frac = int(alt_frac_bin,2)/16
 
-        if(alt_int_bin[0][0] == '1'):
-            alt_int = -1*(65536 - int(alt_int_bin, 2))
+        if(alt_int_bin[0] == '1'):
+            alt_int = -1*(32768 - int(alt_int_bin, 2))
             alt_frac = -1*alt_frac
         else:
             alt_int = int(alt_int_bin,2)
