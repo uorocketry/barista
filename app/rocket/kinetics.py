@@ -1,4 +1,4 @@
-from threading import Thread
+from multiprocessing import Process
 from collections import deque
 
 import numpy as np
@@ -6,9 +6,9 @@ import logging
 
 WINDOW_SIZE = 50
 
-class Kinetics(Thread):
+class Kinetics(Process):
     def __init__(self, device_factory):
-        Thread.__init__(self)
+        super(Kinetics, self).__init__()
         self.accelerometer = device_factory.accelerometer
 
         self.time_series = deque(np.arange(WINDOW_SIZE), maxlen=WINDOW_SIZE)
@@ -27,8 +27,9 @@ class Kinetics(Thread):
 
     def deactivate(self):
         self.active = False
-        self.join(timeout=2)
+        self.join(timeout=1)
         if self.is_alive():
+            self.terminate()
             raise Exception('Failed to deactivate Kinetics Model')
 
     def predicted_apogee(self):
