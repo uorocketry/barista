@@ -1,41 +1,35 @@
 import pytest
 import time
+import numpy
 from app.rocket.kinetics import Kinetics
 
 from test.fixtures.dummy_device_factory import DummyDeviceFactory
 
-def test_run_appends_to_acceleration():
-    kinetics = Kinetics(DummyDeviceFactory())
+@pytest.fixture
+def kinetics():
+    device_factory = DummyDeviceFactory()
+    return Kinetics(DummyDeviceFactory())
 
-def test_run_computes_velocity_using_trapaziod_rule():
-    kinetics = Kinetics(DummyDeviceFactory())
-
-def test_run_computes_position_using_trapaziod_rule():
-    kinetics = Kinetics(DummyDeviceFactory())
-
-def test_start_asynchonously_updates_acceleration():
-    kinetics = Kinetics(DummyDeviceFactory())
+def test_start_asynchonously_updates_acceleration(kinetics):
     kinetics.activate()
-    initial_acceleration = kinetics.acceleration.last()
+    initial_acceleration = kinetics.acceleration()
     time.sleep(1)
-    final_acceleration = kinetics.acceleration.last()
+    final_acceleration = kinetics.acceleration()
     kinetics.deactivate()
     assert initial_acceleration != final_acceleration
 
-def test_start_asynchonously_updates_velocity():
-    kinetics = Kinetics(DummyDeviceFactory())
+def test_start_asynchonously_updates_velocity(kinetics):
     kinetics.activate()
-    initial_velocity = kinetics.velocity.last()
+    initial_velocity = kinetics.velocity()
     time.sleep(1)
-    final_velocity = kinetics.velocity.last()
+    final_velocity = kinetics.velocity()
     kinetics.deactivate()
     assert initial_velocity != final_velocity
 
-def test_start_asynchonously_updates_position():
-    kinetics = Kinetics(DummyDeviceFactory())
+def test_start_asynchonously_updates_position(kinetics):
     kinetics.activate()
-    initial_position = kinetics.position.last()
+    initial_position = kinetics.position()
     time.sleep(1)
-    final_position = kinetics.position.last()
+    final_position = kinetics.position()
     kinetics.deactivate()
     assert initial_position != final_position

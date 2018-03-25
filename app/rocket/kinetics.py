@@ -1,4 +1,4 @@
-from multiprocessing import Process
+from threading import Thread
 from collections import deque
 
 import numpy as np
@@ -6,61 +6,64 @@ import logging
 
 WINDOW_SIZE = 50
 
-class Kinetics(Process):
+class Kinetics(Thread):
     def __init__(self, device_factory):
-        super(Kinetics, self).__init__()
         self.accelerometer = device_factory.accelerometer
 
         self.time_series = deque(np.arange(WINDOW_SIZE), maxlen=WINDOW_SIZE)
 
-        self.acceleration = TimeWindow()
-        self.velocity = TimeWindow()
-        self.position = TimeWindow()
+        self.acceleration_window = TimeWindow()
+        self.velocity_window = TimeWindow()
+        self.position_window = TimeWindow()
         self.active = False
 
     def activate(self):
-        if self.active:
-            raise Exception('Active Kinetics Model')
-        else:
+        if not self.active:
+            Thread.__init__(self)
             self.active = True
             self.start()
+            if not self.is_alive():
+                raise Exception('Failed to activate kinetics model')
 
     def deactivate(self):
-        self.active = False
-        self.join(timeout=1)
-        if self.is_alive():
-            self.terminate()
-            raise Exception('Failed to deactivate Kinetics Model')
+        if self.active:
+            self.active = False
+            self.join(timeout=1)
+            if self.is_alive():
+                raise Exception('Failed to deactivate Kinetics Model')
 
     def predicted_apogee(self):
         return 0
 
     def acceleration(self):
-        return self.acceleration.last()
+        return self.acceleration_window.last()
 
     def velocity(self):
-        return self.velocity.last()
+        return self.velocity_window.last()
 
     def position(self):
-        return self.position.last()
+        return self.position_window.last()
+
+    def compute_brake_percentage(self):
+        return 1.0
 
     def run(self):
         while self.active:
             measurement = self.accelerometer.read()
             self.time_series.append(measurement['time'])
-            self.acceleration.append(x=measurement['x'], y=measurement['y'], z=measurement['z'])
+            self.acceleration_window.append(x=measurement['x'], y=measurement['y'], z=measurement['z'])
 
-            prev_velocity = self.velocity.last()
-            delta_velocity = self.acceleration.integrate_last(self.time_series[-2], self.time_series[-1])
-            self.velocity.append(
+            prev_velocity = self.velocity_window.last()
+            delta_velocity = self.acceleration_window.integrate_last(self.time_series[-2], self.time_series[-1])
+            self.velocity_window.append(
                 x=prev_velocity['x'] + delta_velocity[0],
                 y=prev_velocity['y'] + delta_velocity[1],
                 z=prev_velocity['z'] + delta_velocity[2])
 
 
-            prev_position = self.position.last()
-            delta_position = self.velocity.integrate_last(self.time_series[-2], self.time_series[-1])
-            self.position.append(
+            prev_position = self.position_window.last()
+            delta_position = self.velocity_window.integrate_last(self.time_series[-2], self.time_series[-1])
+            self.position_window.append(
                 x=prev_position['x'] + delta_position[0],
                 y=prev_position['y'] + delta_position[1],
                 z=prev_position['z'] + delta_position[2])

@@ -8,6 +8,12 @@ def rocket():
     device_factory = DummyDeviceFactory()
     return Rocket(device_factory)
 
+@pytest.yield_fixture(autouse=True)
+def run_around_tests(rocket):
+    yield
+    rocket.kinetics.deactivate()
+
+
 def test_sleep_puts_all_devices_to_sleep(rocket):
     assert not rocket.device_factory.altimeter.sleeping
     assert not rocket.device_factory.accelerometer.sleeping
@@ -100,21 +106,28 @@ def test_continue_in_ground_transitions_if_radio_does_not_send_launch(rocket):
     assert rocket.state == 'ground'
 
 def test_ground_transitions_to_powered_when_acceleration_over_threshold(rocket):
-    rocket.kinetics.acceleration = { 'x': 0.0, 'y': 0.0, 'z': 2.2 }
+    def mock_kinetics_acceleration():
+        return { 'x': 0.0, 'y': 0.0, 'z': 2.2 }
+    rocket.kinetics.acceleration = mock_kinetics_acceleration
 
     rocket.during_ground()
 
     assert rocket.state == 'powered'
 
 def test_continue_in_ground_if_acceleration_below_threshold(rocket):
-    rocket.kinetics.acceleration = { 'x': 0.0, 'y': 0.0, 'z': 1.2 }
+    def mock_kinetics_acceleration():
+        return { 'x': 0.0, 'y': 0.0, 'z': 1.2 }
+    rocket.kinetics.acceleration = mock_kinetics_acceleration
 
     rocket.during_ground()
 
     assert rocket.state == 'ground'
 
 def test_powered_transitions_to_coast_if_acceleration_falls_below_threshold(rocket):
-    rocket.kinetics.acceleration = { 'x': 0.0, 'y': 0.0, 'z': -0.2 }
+    def mock_kinetics_acceleration():
+        return { 'x': 0.0, 'y': 0.0, 'z': -0.2 }
+    rocket.kinetics.acceleration = mock_kinetics_acceleration
+
     rocket.launch()
 
     rocket.during_powered()
@@ -122,7 +135,10 @@ def test_powered_transitions_to_coast_if_acceleration_falls_below_threshold(rock
     assert rocket.state == 'coast'
 
 def test_powered_transitions_to_coast_after_3_seconds(rocket):
-    rocket.kinetics.acceleration = { 'x': 0.0, 'y': 0.0, 'z': 0.2 }
+    def mock_kinetics_acceleration():
+        return { 'x': 0.0, 'y': 0.0, 'z': 0.2 }
+    rocket.kinetics.acceleration = mock_kinetics_acceleration
+
     rocket.launch()
     rocket.during_powered()
     assert rocket.state == 'powered'
@@ -133,8 +149,12 @@ def test_powered_transitions_to_coast_after_3_seconds(rocket):
     assert rocket.state == 'coast'
 
 def test_continue_powered_otherwise(rocket):
-    rocket.kinetics.acceleration = { 'x': 0.0, 'y': 0.0, 'z': 0.2 }
+    def mock_kinetics_acceleration():
+        return { 'x': 0.0, 'y': 0.0, 'z': 0.2 }
+    rocket.kinetics.acceleration = mock_kinetics_acceleration
+
     rocket.launch()
+
     rocket.during_powered()
     assert rocket.state == 'powered'
 
@@ -144,31 +164,38 @@ def test_continue_powered_otherwise(rocket):
     assert rocket.state == 'powered'
 
 def test_coast_deploys_brakes_based_on_kinetics(rocket):
-    rocket.state_machine.set_state('coast')
-    rocket.kinetics.brake_percentage = 0.321
-    rocket.kinetics.velocity['z'] = 70.6
+    def mock_kinetics_velocity():
+        return { 'x': 0.0, 'y': 0.0, 'z': 70.6 }
+    rocket.kinetics.velocity = mock_kinetics_velocity
+    def mock_kinetics_brake_percentage():
+        return 0.321
+    rocket.kinetics.compute_brake_percentage = mock_kinetics_brake_percentage
 
+    rocket.state_machine.set_state('coast')
     rocket.during_coast()
 
     assert rocket.device_factory.brakes.percentage == 0.321
 
 def test_coast_retracts_brakes_and_transitions_to_decent_drogue_at_apogee(rocket):
+    def mock_kinetics_velocity():
+        return { 'x': 0.0, 'y': 0.0, 'z': 3.8 }
+    rocket.kinetics.velocity = mock_kinetics_velocity
     def mock_kinetics_brake_percentage():
         return 0.321
-    rocket.kinetics.brake_percentage = mock_kinetics_brake_percentage
-    rocket.kinetics.velocity['z'] = 3.8
-    rocket.state_machine.set_state('coast')
+    rocket.kinetics.compute_brake_percentage = mock_kinetics_brake_percentage
 
+    rocket.state_machine.set_state('coast')
     rocket.during_coast()
 
     assert rocket.device_factory.brakes.percentage == 0.0
     assert rocket.state == 'descent_drogue'
 
 def test_descent_drogue_deploys_first_stage_recovery(rocket):
-    rocket.kinetics.velocity['z'] = 3.8
-    rocket.kinetics.brake_percentage = 0.321
-    rocket.state_machine.set_state('coast')
+    def mock_kinetics_velocity():
+        return { 'x': 0.0, 'y': 0.0, 'z': 3.8 }
+    rocket.kinetics.velocity = mock_kinetics_velocity
 
+    rocket.state_machine.set_state('coast')
     rocket.during_coast()
 
     assert rocket.device_factory.parachute.deployed_stage_one
@@ -198,7 +225,9 @@ def test_descent_drogue_transitions_to_descent_main_after_100_seconds(rocket):
     assert rocket.state == 'descent_main'
 
 def test_descent_main_transitions_to_ground_when_velocity_below_threshold(rocket):
-    rocket.kinetics.velocity['z'] = 0
+    def mock_kinetics_velocity():
+        return { 'x': 0.0, 'y': 0.0, 'z': 0.0 }
+    rocket.kinetics.velocity = mock_kinetics_velocity
     rocket.state_machine.set_state('descent_main')
 
     rocket.during_descent_main()
