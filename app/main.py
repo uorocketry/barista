@@ -42,7 +42,7 @@ class Rocket(object):
         self.logger = logging.getLogger('RocketLogger')
         self.logger.setLevel(20)
 
-        self.kinetics = Kinetics()
+        self.kinetics = Kinetics(device_factory)
         self.device_factory = device_factory
 
 
@@ -79,7 +79,7 @@ class Rocket(object):
     def during_ground(self):
         LAUNCH_ACCELERATION_THRESHOLD = 1.5 # G
         action = self.device_factory.radio.receive()['action']
-        if action == 'launch' or self.kinetics.acceleration['z'] > LAUNCH_ACCELERATION_THRESHOLD:
+        if action == 'launch' or self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
             self.launch()
         elif action == 'sleep':
             self.sleep()
@@ -87,16 +87,16 @@ class Rocket(object):
     def during_powered(self):
         BURNOUT_ACCELERATION_THRESHOLD = 0.0
         MOTOR_BURN_TIME = 3.0
-        if self.kinetics.acceleration['z'] < BURNOUT_ACCELERATION_THRESHOLD or time.time() - self.last_state['time'] > MOTOR_BURN_TIME:
+        if self.kinetics.acceleration()['z'] < BURNOUT_ACCELERATION_THRESHOLD or time.time() - self.last_state['time'] > MOTOR_BURN_TIME:
             self.burnout()
 
     def during_coast(self):
         APOGEE_VELOCTY_THRESHOLD = 8 # m/s
-        if self.kinetics.velocity['z'] <= APOGEE_VELOCTY_THRESHOLD:
+        self.device_factory.brakes.deploy(self.kinetics.compute_brake_percentage())
+
+        if self.kinetics.velocity()['z'] <= APOGEE_VELOCTY_THRESHOLD:
             self.deploy_drogue()
             self.device_factory.brakes.deploy(0.0)
-
-        self.device_factory.brakes.deploy(self.kinetics.brake_precentage)
 
     def on_enter_decent_drogue(self):
         self.device_factory.parachute.deploy_stage_one()
@@ -112,7 +112,7 @@ class Rocket(object):
 
     def during_descent_main(self):
         TOUCHDOWN_VELOCITY_THRESHOLD = 0.0
-        if self.kinetics.velocity['z'] <= TOUCHDOWN_VELOCITY_THRESHOLD:
+        if self.kinetics.velocity()['z'] <= TOUCHDOWN_VELOCITY_THRESHOLD:
             self.touchdown()
 
     def run(self):

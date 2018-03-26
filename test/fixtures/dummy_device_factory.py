@@ -1,4 +1,4 @@
-import time
+from time import time
 import random
 import logging
 
