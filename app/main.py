@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+
 from transitions import State, Machine
 from threading import Thread
 from app.rocket.kinetics import Kinetics
@@ -25,7 +26,7 @@ class Rocket(Thread):
         { 'trigger': 'wake', 'source': 'sleep', 'dest': 'ground' }
     ]
 
-    def __init__(self, device_factory):
+    def __init__(self, device_factory, log_level=logging.INFO, log_dir='app/logs'):
         self.state_machine = Machine(
             model=self,
             states=Rocket.states,
@@ -36,10 +37,7 @@ class Rocket(Thread):
             'name': 'ground',
             'time': time.time()
         }
-
-        logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', datefrmt='%X.%f')
-        self.logger = logging.getLogger('RocketLogger')
-        self.logger.setLevel(20)
+        logging.info('Initialized Rocket')
 
         self.kinetics = Kinetics(device_factory)
         self.kinetics.activate()
@@ -67,6 +65,7 @@ class Rocket(Thread):
             'time': time.time()
         }
         self.state_data = {}
+        logging.info('hi')
 
     def enter_sleep(self):
         self.kinetics.deactivate()
@@ -92,7 +91,7 @@ class Rocket(Thread):
         self.kinetics.activate()
 
     def during_ground(self):
-        LAUNCH_ACCELERATION_THRESHOLD = 1.5 # G
+        LAUNCH_ACCELERATION_THRESHOLD = 1 # m/s^2
         action = self.device_factory.radio.receive()['action']
         if action == 'launch' or self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
             self.launch()
@@ -108,7 +107,6 @@ class Rocket(Thread):
     def during_coast(self):
         APOGEE_VELOCTY_THRESHOLD = 8 # m/s
         self.device_factory.brakes.deploy(self.kinetics.compute_brake_percentage())
-
         if self.kinetics.velocity()['z'] <= APOGEE_VELOCTY_THRESHOLD:
             self.deploy_drogue()
             self.device_factory.brakes.deploy(0.0)
@@ -146,7 +144,7 @@ class Rocket(Thread):
                 self.during_descent_main()
 
 if __name__ == '__main__':
-    from app.rocket.device_factory import DeviceFactory
-    device_factory = DeviceFactory()
+    from test.fixtures.dummy_device_factory import DummyDeviceFactory
+    device_factory = DummyDeviceFactory()
     rocket1 = Rocket(device_factory)
     rocket1.activate()
