@@ -63,9 +63,10 @@ class DummyRadio(object):
 
 
     def receive(self):
-        return { 'action': self.action, 'data': self.data }
+        data = { 'action': str(self.action), 'data': self.data }
         self.data = None
         self.action = None
+        return data
 
 
     def transmit(self, message):

@@ -9,7 +9,7 @@ from app.rocket.kinetics import Kinetics
 class Rocket(Thread):
     states = [
         State(name='sleep',          on_enter=['enter_state', 'enter_sleep'], on_exit='exit_sleep'),
-        State(name='ground',         on_enter=['enter_state']),
+        State(name='ground',         on_enter=['enter_state','enter_ground']),
         State(name='powered',        on_enter=['enter_state']),
         State(name='coast',          on_enter=['enter_state']),
         State(name='descent_drogue', on_enter=['enter_state', 'on_enter_decent_drogue']),
@@ -56,7 +56,7 @@ class Rocket(Thread):
     def deactivate(self):
         if self.active:
             self.active = False
-            self.join(timeout=1)
+            self.join(timeout=6)
             if self.is_alive():
                 raise Exception('Failed to deactivate rocekt model')
 
@@ -88,7 +88,10 @@ class Rocket(Thread):
 
     def exit_sleep(self):
         self.device_factory.wake_all()
+
+    def enter_ground(self):
         self.kinetics.activate()
+
 
     def during_ground(self):
         LAUNCH_ACCELERATION_THRESHOLD = 1.5 # G

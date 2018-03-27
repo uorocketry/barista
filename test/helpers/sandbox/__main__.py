@@ -6,6 +6,7 @@ from gyro import SandboxGyro
 from accelerometer import SandboxAccelerometer
 from altimeter import SandboxAltimeter
 from app.rocket.kinetics import Kinetics,TimeWindow
+from time import time
 
 class SandboxDeviceFactory(object):
 
@@ -35,15 +36,17 @@ class Sandbox(object):
     def start(self):
         print('Starting sandbox')
         self.running = True
-        self.rocket.run()
+        self.rocket.activate()
 
 
     def ignition(self):
         print('Engine ignition')
+        self.send_comms('ignition',[])
         self.launch_time = time()
-        self.device_factory.accelerometer.launch(self.launch_time)
-        self.device_factory.gyro.launch(self.launch_time)
-        self.device_factory.altimeter.launch(self.launch_time)
+        self.rocket.device_factory.accelerometer.launch(self.launch_time)
+        self.rocket.device_factory.gyro.launch(self.launch_time)
+        self.rocket.device_factory.altimeter.launch(self.launch_time)
+        print self.rocket.state
 
 
     def stop(self):
@@ -98,7 +101,7 @@ if __name__ == '__main__':
             sandbox.send_comms(args[1], args[2])
         elif command == 'start':
             sandbox.start()
-        elif command == 'ingition':
+        elif command == 'ignition':
             sandbox.ignition()
         elif command == 'stop':
             sandbox.stop()
