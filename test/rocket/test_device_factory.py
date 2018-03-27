@@ -4,6 +4,7 @@ from mock import patch
 from app.device.accelerometer import Accelerometer
 from app.device.altimeter import Altimeter
 from app.device.brakes import Brakes
+
 from app.device.gps import GPS
 from app.device.gyro import Gyro
 from app.device.parachute import Parachute

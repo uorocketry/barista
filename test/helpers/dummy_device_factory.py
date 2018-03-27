@@ -141,6 +141,7 @@ class DummyBrakes(object):
         self.percentage = percentage
 
 
+
 class DummyDeviceFactory(object):
     def __init__(self):
         self.accelerometer = DummyAccelerometer()

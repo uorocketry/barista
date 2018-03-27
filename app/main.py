@@ -3,7 +3,6 @@ import os
 import time
 from transitions import State, Machine
 
-from app.rocket.device_factory import DeviceFactory
 from app.rocket.kinetics import Kinetics
 
 
@@ -131,6 +130,7 @@ class Rocket(object):
                 self.during_descent_main()
 
 if __name__ == '__main__':
+    from app.rocket.device_factory import DeviceFactory
     device_factory = DeviceFactory()
     rocket1 = Rocket(device_factory)
     rocket1.run()

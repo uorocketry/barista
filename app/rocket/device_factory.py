@@ -1,6 +1,7 @@
 from app.device.accelerometer import Accelerometer
 from app.device.altimeter import Altimeter
 from app.device.brakes import Brakes
+
 from app.device.gps import GPS
 from app.device.gyro import Gyro
 from app.device.parachute import Parachute
@@ -12,6 +13,7 @@ class DeviceFactory(object):
         self.accelerometer = Accelerometer()
         self.altimeter = Altimeter()
         self.brakes = Brakes()
+
         self.gps = GPS()
         self.gyro = Gyro()
         self.parachute = Parachute()

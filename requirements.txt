@@ -2,4 +2,3 @@ pytest
 serial
 transitions
 smbus2
-RPi.GPIO

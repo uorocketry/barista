@@ -1,4 +1,5 @@
 import os
+import logging
 if os.environ.has_key('ROCKET_PRODUCTION'):
     import RPi.GPIO as GPIO
 
@@ -17,7 +18,6 @@ class Parachute(object):
         GPIO.output(STAGE_ONE_TRIGGER_PIN, GPIO.LOW)
         GPIO.output(STAGE_TWO_TRIGGER_PIN, GPIO.LOW)
 
-
     def deploy_stage_one(self):
         if not self.deployed_stage_one:
             self.deployed_stage_one = True
@@ -32,7 +32,7 @@ class Parachute(object):
         else:
             raise
 
-    # TODO make this an asynchronous callback after deploy
+    # TODO make this an asynchronous callback 2s after deploy
     def cut_power(self):
         GPIO.output(STAGE_ONE_TRIGGER_PIN, GPIO.LOW)
         GPIO.output(STAGE_TWO_TRIGGER_PIN, GPIO.LOW)
