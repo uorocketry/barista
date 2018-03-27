@@ -141,14 +141,11 @@ class DummyParachute(object):
 
 class DummyBrakes(object):
     def __init__(self):
-        self.logger = logging.getLogger()
         self.percentage = 0.0
 
     def deploy(self, percentage):
-        self.logger.info('Deployed Barkes %f%', percentage)
+        logging.info('Deployed Brakes {}%'.format(percentage))
         self.percentage = percentage
-
-
 
 class DummyDeviceFactory(object):
     def __init__(self):
