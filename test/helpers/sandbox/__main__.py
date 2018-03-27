@@ -5,7 +5,7 @@ from test.helpers.dummy_device_factory import DummyGPS, DummyBrakes, DummyParach
 from gyro import SandboxGyro
 from accelerometer import SandboxAccelerometer
 from altimeter import SandboxAltimeter
-
+from app.rocket.kinetics import Kinetics,TimeWindow
 
 class SandboxDeviceFactory(object):
 
