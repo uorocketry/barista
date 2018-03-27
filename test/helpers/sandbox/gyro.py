@@ -28,13 +28,12 @@ class SandboxGyro(object):
                     'time': time()
                 }
             except Exception as e:
-                logging.info('No more gyro data')
                 return {
                 'pitch': self.noise(0.0),
                 'roll': self.noise(0.0),
                 'yaw': self.noise(0.0),
                 'time':time()
-                } 
+                }
         else:
             return {
                 'pitch': self.noise(0.0),

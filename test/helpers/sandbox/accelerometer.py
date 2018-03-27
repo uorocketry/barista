@@ -28,7 +28,6 @@ class SandboxAccelerometer(object):
                     'time': sample_time
                 }
             except Exception as e:
-                logging.info('No more accelerometer data')
                 return {
                     'x': self.noise(0.0),
                     'y': self.noise(0.0),

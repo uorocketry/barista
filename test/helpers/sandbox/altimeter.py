@@ -23,7 +23,6 @@ class SandboxAltimeter(object):
                     'time': sample_time
                 }
             except Exception as e:
-                logging.info('No more altimeter data')
                 return{
                     'altitude':self.noise(1294),
                     'time': time()
