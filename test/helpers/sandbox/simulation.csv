@@ -1,4 +1,4 @@
-# Time (s),Altitude (m),Vertical velocity (m/s),Vertical acceleration (m/s²),Position East of launch (m),Position North of launch (m),Lateral distance (m),Lateral velocity (m/s),Lateral acceleration (m/s²),Roll rate (°/s),Pitch rate (°/s),Yaw rate (°/s)
+# Time (s),Altitude (m),Vertical velocity (m/s),Vertical acceleration (m/s^2),Position East of launch (m),Position North of launch (m),Lateral distance (m),Lateral velocity (m/s),Lateral acceleration (m/s^2),Roll rate (deg/s),Pitch rate (deg/s),Yaw rate (deg/s)
 0,0,0,-6.635,0,0,0,0,2.415,0,0,0
 0.01,0,0,-2.6053,0,0,0,0,0.94827,0,0,0
 0.02,0,0,1.4252,0,0,0,0,0.51872,0,0,0

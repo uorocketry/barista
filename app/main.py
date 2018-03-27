@@ -9,7 +9,7 @@ from app.rocket.kinetics import Kinetics
 class Rocket(Thread):
     states = [
         State(name='sleep',          on_enter=['enter_state', 'enter_sleep'], on_exit='exit_sleep'),
-        State(name='ground',         on_enter=['enter_state','enter_ground']),
+        State(name='ground',         on_enter=['enter_state']),
         State(name='powered',        on_enter=['enter_state']),
         State(name='coast',          on_enter=['enter_state']),
         State(name='descent_drogue', on_enter=['enter_state', 'on_enter_decent_drogue']),
@@ -42,6 +42,7 @@ class Rocket(Thread):
         self.logger.setLevel(20)
 
         self.kinetics = Kinetics(device_factory)
+        self.kinetics.activate()
         self.device_factory = device_factory
         self.active = False
 
@@ -88,10 +89,7 @@ class Rocket(Thread):
 
     def exit_sleep(self):
         self.device_factory.wake_all()
-
-    def enter_ground(self):
         self.kinetics.activate()
-
 
     def during_ground(self):
         LAUNCH_ACCELERATION_THRESHOLD = 1.5 # G

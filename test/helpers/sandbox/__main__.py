@@ -9,18 +9,15 @@ from app.rocket.kinetics import Kinetics,TimeWindow
 from time import time
 
 class SandboxDeviceFactory(object):
-
-
     def __init__(self, simulation_data):
         self.accelerometer = SandboxAccelerometer(self.filter_dataframe(simulation_data, 'acceleration'))
-        self.gyro = SandboxGyro(self.filter_dataframe(simulation_data,'rate (°/s)'))
+        self.gyro = SandboxGyro(self.filter_dataframe(simulation_data,'rate (deg/s)'))
         self.altimeter = SandboxAltimeter(self.filter_dataframe(simulation_data,'Altitude'))
         self.radio = DummyRadio()
         self.gps = DummyGPS()
         self.parachute = DummyParachute()
 
-
-    def filter_dataframe(self,dataframe,columns):
+    def filter_dataframe(self, dataframe, columns):
         return pd.concat([dataframe.filter(items=['# Time (s)']), dataframe.filter(like=columns)],axis=1)
 
 
@@ -29,49 +26,35 @@ class Sandbox(object):
         self.simulation_data = pd.read_csv(source_file)
         self.device_factory = SandboxDeviceFactory(self.simulation_data)
         self.rocket = Rocket(self.device_factory)
-        self.running = False
+        self.active = False
         self.launch_time = None
-
 
     def start(self):
         print('Starting sandbox')
-        self.running = True
+        self.active = True
         self.rocket.activate()
 
-
-    def ignition(self):
-        print('Engine ignition')
-        self.send_comms('ignition',[])
+    def launch(self):
         self.launch_time = time()
         self.rocket.device_factory.accelerometer.launch(self.launch_time)
         self.rocket.device_factory.gyro.launch(self.launch_time)
         self.rocket.device_factory.altimeter.launch(self.launch_time)
-        print self.rocket.state
-
 
     def stop(self):
-        print('Stopping sandbox')
-        self.running = False
-        self.rocket.stop()
-
+        self.active = False
+        self.rocket.deactivate()
 
     def reset(self):
-        if self.running:
+        if self.active:
             logging.warn('Sandbox still running')
         else:
             logging.info('Reseting sandbox')
             self.device_factory.accelerometer.reset()
+            self.device_factory.altimeter.reset()
             self.device_factory.gyro.reset()
 
-
-    def send_comms(self, action=None,data=None):
-        self.rocket.device_factory.radio.set_message(action,data)
-        print self.rocket.device_factory.radio.action
-        print self.rocket.device_factory.radio.data
-
-
-
-
+    def send_comms(self, action=None, data=None):
+        self.rocket.device_factory.radio.mock_message(action,data)
 
 if __name__ == '__main__':
     sandbox = Sandbox()
@@ -92,18 +75,19 @@ if __name__ == '__main__':
             help            = prints this stuff
             comms <message> = sends a message over comms channel
             start           = starts a simulation
-            ignition        = sends ignition signal to rocket
+            launch          = sends ignition signal to rocket
             stop            = stops a simulation
             reset           = resets the simulation
             ''')
         elif command.startswith('comms'):
-            args = command.split()
-            sandbox.send_comms(args[1], args[2])
+            args = command.split("\"")
+            sandbox.send_comms(args[1], args[3])
         elif command == 'start':
             sandbox.start()
-        elif command == 'ignition':
-            sandbox.ignition()
+        elif command == 'launch':
+            sandbox.launch()
         elif command == 'stop':
             sandbox.stop()
         elif command == 'reset':
             sandbox.reset()
+        
