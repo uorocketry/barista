@@ -1,4 +1,5 @@
 from time import time
+import logging
 
 
 class SandboxAccelerometer(object):
@@ -19,12 +20,21 @@ class SandboxAccelerometer(object):
         elif self.launched:
             sample_time = time()
             simulation_time = sample_time - self.launch_time
-            return {
-                'x': self.noise(self.acceleration_data.loc[self.acceleration_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Lateral').values[0]),
-                'y': self.noise(self.acceleration_data.loc[self.acceleration_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Lateral').values[0]),
-                'z': self.noise(self.acceleration_data.loc[self.acceleration_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Vertical').values[0]),
-                'time': sample_time
-            }
+            try:
+                return {
+                    'x': self.noise(self.acceleration_data.loc[self.acceleration_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Lateral').values[0]),
+                    'y': self.noise(self.acceleration_data.loc[self.acceleration_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Lateral').values[0]),
+                    'z': self.noise(self.acceleration_data.loc[self.acceleration_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Vertical').values[0]),
+                    'time': sample_time
+                }
+            except Exception as e:
+                logging.info('No more accelerometer data')
+                return {
+                    'x': self.noise(0.0),
+                    'y': self.noise(0.0),
+                    'z': self.noise(-9.8),
+                    'time':time()
+                }
         else :
             return {
                 'x': self.noise(0.0),

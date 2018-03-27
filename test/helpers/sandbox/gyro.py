@@ -1,4 +1,5 @@
 from time import time
+import logging
 
 
 class SandboxGyro(object):
@@ -19,12 +20,21 @@ class SandboxGyro(object):
         elif self.launched:
             sample_time = time()
             simulation_time = sample_time - self.launch_time
-            return {
-                'pitch': self.noise(self.gyro_data.loc[self.gyro_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Pitch').values[0]),
-                'roll': self.noise(self.gyro_data.loc[self.gyro_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Roll').values[0]),
-                'yaw': self.noise(self.gyro_data.loc[self.gyro_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Yaw').values[0]),
-                'time': time()
-            }
+            try:
+                return {
+                    'pitch': self.noise(self.gyro_data.loc[self.gyro_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Pitch').values[0]),
+                    'roll': self.noise(self.gyro_data.loc[self.gyro_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Roll').values[0]),
+                    'yaw': self.noise(self.gyro_data.loc[self.gyro_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Yaw').values[0]),
+                    'time': time()
+                }
+            except Exception as e:
+                logging.info('No more gyro data')
+                return {
+                'pitch': self.noise(0.0),
+                'roll': self.noise(0.0),
+                'yaw': self.noise(0.0),
+                'time':time()
+                } 
         else:
             return {
                 'pitch': self.noise(0.0),

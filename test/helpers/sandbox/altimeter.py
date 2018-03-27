@@ -1,4 +1,5 @@
 from time import time
+import logging
 
 class SandboxAltimeter(object):
     def __init__(self, altitude_data):
@@ -16,10 +17,18 @@ class SandboxAltimeter(object):
         elif self.launched:
             sample_time = time()
             simulation_time = sample_time - self.launch_time
-            return {
-                'altitude':self.noise(self.altitude_data.loc[self.altitude_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Altitude').values[0]),
-                'time': sample_time
-            }
+            try:
+                return {
+                    'altitude':self.noise(self.altitude_data.loc[self.altitude_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Altitude').values[0]),
+                    'time': sample_time
+                }
+            except Exception as e:
+                logging.info('No more altimeter data')
+                return{
+                    'altitude':self.noise(1294),
+                    'time': time()
+                }
+
         else:
             return {
                 'altitude': self.noise(1294),
