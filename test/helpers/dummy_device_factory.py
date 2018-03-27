@@ -43,7 +43,6 @@ class DummyAltimeter(object):
     def set_bar_setting(self, bar_setting):
         self.bar_setting = bar_setting
 
-
     def sleep(self):
         self.sleeping = True
 
@@ -54,12 +53,21 @@ class DummyAltimeter(object):
 class DummyRadio(object):
     def __init__(self):
         self.sleeping = False
+        self.action = None
+        self.data = None
 
     def receive(self):
-        return { 'action': None, 'data': [] }
+        data = { 'action': str(self.action), 'data': self.data }
+        self.data = None
+        self.action = None
+        return data
 
-    def transmit(self, message):
-        pass
+    def transmit(self, acion, data):
+        logging.info("Radio transmit: action: {} data: {}".format(action, data))
+
+    def mock_message(self, action, data):
+        self.action = action
+        self.data = data
 
     def sleep(self):
         self.sleeping = True

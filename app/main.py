@@ -42,6 +42,7 @@ class Rocket(Thread):
         self.logger.setLevel(20)
 
         self.kinetics = Kinetics(device_factory)
+        self.kinetics.activate()
         self.device_factory = device_factory
         self.active = False
 
@@ -56,7 +57,7 @@ class Rocket(Thread):
     def deactivate(self):
         if self.active:
             self.active = False
-            self.join(timeout=1)
+            self.join(timeout=6)
             if self.is_alive():
                 raise Exception('Failed to deactivate rocekt model')
 

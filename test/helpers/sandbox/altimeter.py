@@ -1,14 +1,11 @@
 from time import time
 
 class SandboxAltimeter(object):
-
-
-    def __init__(self,source_file):
+    def __init__(self, altitude_data):
         self.sleeping = False
         self.launch_time = None
         self.launched = False
-        self.simulation_data = source_file
-
+        self.altitude_data = altitude_data
 
     def read(self):
         if self.sleeping:
@@ -18,9 +15,9 @@ class SandboxAltimeter(object):
             }
         elif self.launched:
             sample_time = time()
-            self.simulation_time = sample_time-self.launch_time
+            simulation_time = sample_time - self.launch_time
             return {
-                'altitude':self.noise(self.simulation_data.loc[self.simulation_data['# Time (s)'] >= self.simulation_time].iloc[0].filter(like='Altitude').values[0]),
+                'altitude':self.noise(self.altitude_data.loc[self.altitude_data['# Time (s)'] >= simulation_time].iloc[0].filter(like='Altitude').values[0]),
                 'time': sample_time
             }
         else:
@@ -29,25 +26,20 @@ class SandboxAltimeter(object):
                 'time': time()
             }
 
-
     def sleep(self):
         self.sleeping = True
-
 
     def wake(self):
         self.sleeping = False
 
-
     def launch(self,start_time):
         self.launched = True
-        self.launch_time =start_time
-
+        self.launch_time = start_time
 
     def reset(self):
         self.launched = False
-        self.sleep()
+        self.wake()
         self.launch_time = None
-
 
     def noise(self, data):
         return data

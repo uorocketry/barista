@@ -68,7 +68,6 @@ class Kinetics(Thread):
                 y=prev_position['y'] + delta_position[1],
                 z=prev_position['z'] + delta_position[2])
 
-
 class TimeWindow(object):
     def __init__(self, size=WINDOW_SIZE):
         self.x = deque(np.zeros(size), maxlen=size)
