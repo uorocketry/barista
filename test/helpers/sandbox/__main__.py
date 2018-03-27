@@ -1,7 +1,7 @@
 import logging
 import pandas as pd
 from app.main import Rocket
-from test.helpers.dummy_device_factory import DummyGPS, DummyBrakes, DummyParachute
+from test.helpers.dummy_device_factory import DummyGPS, DummyBrakes, DummyParachute, DummyRadio
 from gyro import SandboxGyro
 from accelerometer import SandboxAccelerometer
 from altimeter import SandboxAltimeter
@@ -14,6 +14,7 @@ class SandboxDeviceFactory(object):
         self.accelerometer = SandboxAccelerometer(self.filter_dataframe(simulation_data, 'acceleration'))
         self.gyro = SandboxGyro(self.filter_dataframe(simulation_data,'rate (°/s)'))
         self.altimeter = SandboxAltimeter(self.filter_dataframe(simulation_data,'Altitude'))
+        self.radio = DummyRadio()
         self.gps = DummyGPS()
         self.parachute = DummyParachute()
 
@@ -34,7 +35,7 @@ class Sandbox(object):
     def start(self):
         print('Starting sandbox')
         self.running = True
-        rocket.start()
+        self.rocket.run()
 
 
     def ignition(self):
@@ -48,7 +49,7 @@ class Sandbox(object):
     def stop(self):
         print('Stopping sandbox')
         self.running = False
-        rocket.stop()
+        self.rocket.stop()
 
 
     def reset(self):
@@ -60,9 +61,10 @@ class Sandbox(object):
             self.device_factory.gyro.reset()
 
 
-    def send_comms(self, message):
-        # TODO when Xbee implemented create a dummy class
-        pass
+    def send_comms(self, action=None,data=None):
+        self.rocket.device_factory.radio.set_message(action,data)
+        print self.rocket.device_factory.radio.action
+        print self.rocket.device_factory.radio.data
 
 
 
@@ -81,7 +83,7 @@ if __name__ == '__main__':
     ''')
 
     while True:
-        command = input('>>>')
+        command = raw_input('>>>')
         if command == 'help':
             print('''
             help            = prints this stuff
@@ -92,7 +94,8 @@ if __name__ == '__main__':
             reset           = resets the simulation
             ''')
         elif command.startswith('comms'):
-            pass
+            args = command.split()
+            sandbox.send_comms(args[1], args[2])
         elif command == 'start':
             sandbox.start()
         elif command == 'ingition':
