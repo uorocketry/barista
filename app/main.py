@@ -2,11 +2,11 @@ import logging
 import os
 import time
 from transitions import State, Machine
-
+from threading import Thread
 from app.rocket.kinetics import Kinetics
 
 
-class Rocket(object):
+class Rocket(Thread):
     states = [
         State(name='sleep',          on_enter=['enter_state', 'enter_sleep'], on_exit='exit_sleep'),
         State(name='ground',         on_enter=['enter_state']),
@@ -43,7 +43,22 @@ class Rocket(object):
 
         self.kinetics = Kinetics(device_factory)
         self.device_factory = device_factory
+        self.active = False
 
+    def activate(self):
+        if not self.active:
+            Thread.__init__(self)
+            self.active = True
+            self.start()
+            if not self.is_alive():
+                raise Exception('Failed to activate rocket model')
+
+    def deactivate(self):
+        if self.active:
+            self.active = False
+            self.join(timeout=1)
+            if self.is_alive():
+                raise Exception('Failed to deactivate rocekt model')
 
     def enter_state(self):
         self.last_state = {
@@ -115,7 +130,7 @@ class Rocket(object):
             self.touchdown()
 
     def run(self):
-        while True:
+        while self.active:
             if self.state == 'sleep':
                 self.during_sleep()
             elif self.state == 'ground':
@@ -133,4 +148,4 @@ if __name__ == '__main__':
     from app.rocket.device_factory import DeviceFactory
     device_factory = DeviceFactory()
     rocket1 = Rocket(device_factory)
-    rocket1.run()
+    rocket1.activate()
