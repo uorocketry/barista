@@ -84,7 +84,7 @@ class TimeWindow(object):
     def append(self, **values):
         self.x.append(values['x'])
         self.y.append(values['y'])
-        self.y.append(values['z'])
+        self.z.append(values['z'])
 
     def integrate_last(self, t0, t1):
         return np.trapz(
