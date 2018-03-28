@@ -81,6 +81,7 @@ if __name__ == '__main__':
             comms <message> = sends a message over comms channel
             start           = starts a simulation
             stop            = stops a simulation
+            exit            = exit sandbox
             ''')
         elif command.startswith('comms'):
             args = command.split("\"")
@@ -89,4 +90,5 @@ if __name__ == '__main__':
             sandbox.start()
         elif command == 'stop':
             sandbox.stop()
-        import pdb; pdb.set_trace()
+        elif command == 'quit':
+            break
