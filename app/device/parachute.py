@@ -3,8 +3,8 @@ import logging
 if os.environ.has_key('ROCKET_PRODUCTION'):
     import RPi.GPIO as GPIO
 
-STAGE_ONE_TRIGGER_PIN = 4 # physical pin 7
-STAGE_TWO_TRIGGER_PIN = 17 # physical pin 11
+STAGE_ONE_TRIGGER_PIN = 22 # physical pin 7
+STAGE_TWO_TRIGGER_PIN = 25 # physical pin 11
 
 class Parachute(object):
     def __init__(self):
