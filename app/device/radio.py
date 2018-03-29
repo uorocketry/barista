@@ -4,14 +4,14 @@ import logging
 import json
 
 class Radio(object):
-    def __init__(self,baud=9600, port='/dev/ttyUSB0'):
+    def __init__(self,baud=9600, port=''):
         try:
             self.serial = serial.Serial(port,baud,timeout=1)
             logging.info("Radio Initialized")
         except Exception as e:
             logging.error('error: {}'.format(e))
 
-    def transmit(self, acion, data):
+    def transmit(self, action, data):
         message = json.dumps({ 'action': action, 'data': data })
         try:
             self.serial.write(message + '\n')
