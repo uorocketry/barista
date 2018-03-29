@@ -37,6 +37,12 @@ class Rocket(Thread):
             'name': 'ground',
             'time': time.time()
         }
+        logging.basicConfig(
+            format='%(asctime)s.%(msecs)03d | [%(levelname)s] | %(message)s',
+            datefmt='%m/%d/%Y %I:%M:%-S',
+            filename='{}/{}.log'.format(log_dir, int(time.time())),
+            level=log_level
+        )
         logging.info('Initialized Rocket')
 
         self.kinetics = Kinetics(device_factory)
@@ -92,11 +98,14 @@ class Rocket(Thread):
 
     def during_ground(self):
         LAUNCH_ACCELERATION_THRESHOLD = 1 # m/s^2
-        action = self.device_factory.radio.receive()['action']
-        if action == 'launch' or self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
+        message = self.device_factory.radio.receive()
+        if message['action'] == 'launch' or self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
             self.launch()
-        elif action == 'sleep':
+        elif message['action'] == 'sleep':
             self.sleep()
+        elif message['action'] == 'test_brakes':
+            brakes_percentage = float(message['data'])
+            self.device_factory.brakes.deploy(brakes_percentage)
 
     def during_powered(self):
         BURNOUT_ACCELERATION_THRESHOLD = 0.0
@@ -142,6 +151,7 @@ class Rocket(Thread):
                 self.during_descent_drogue()
             elif self.state == 'descent_main':
                 self.during_descent_main()
+
 
 if __name__ == '__main__':
     from test.fixtures.dummy_device_factory import DummyDeviceFactory

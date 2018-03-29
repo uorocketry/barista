@@ -1,7 +1,9 @@
+import time
+
 from app.utils.servo import Servo
 from app.utils.exceptions import InvalidArguments
 
-SERVO_PIN = 18 # physical pin 12
+SERVO_PIN = 21 # physical pin 12
 
 class Brake(object):
     def __init__(self):
@@ -10,9 +12,13 @@ class Brake(object):
         self.servo.write(0)
 
     def deploy(self, percentage):
-        if percentage < 0.0 or percentage > 100.0:
-            raise InvalidArguments("percentage must be in range (0, 100)")
+        if percentage < 0.0 or percentage > 1.0:
+            raise InvalidArguments("percentage must be in range (0.0, 1.0)")
         self.percentage = percentage
-        # TODO better conversion from area exposed to servo angle
-        servo_position = percentage * 1.80
-        self.servo.write(servo_position)
+        self.servo.write(percentage)
+
+    def sweep(self):
+        self.deploy(0)
+        for i in range(0, 100):
+            self.deploy(i/100.0)
+            time.sleep(0.03)
