@@ -4,26 +4,48 @@ import logging
 import json
 
 class Radio(object):
-    def __init__(self,baud=9600,port='/dev/ttyUSB0'):
+    def __init__(self,baud=9600, port='/dev/ttyUSB0'):
         try:
-            self.ser = serial.Serial(port,baud,timeout=None)
+            self.serial = serial.Serial(port,baud,timeout=1)
             logging.info("Radio Initialized")
         except Exception as e:
-            logging.error('error:{}'.format(e))
+            logging.error('error: {}'.format(e))
 
-    def write(self, raw_data):
-        logging.info(json.dumps(raw_data))
+    def transmit(self, acion, data):
+        message = json.dumps({ 'action': action, 'data': data })
         try:
-            return self.ser.write(json.dumps(raw_data)+'\n')
+            self.serial.write(message + '\n')
+            logging.info('Radio transmit message: {}'.format(message))
         except Exception as e:
-            logging.error('error: {}, data: {}'.format(e, raw_data))
+            logging.error('Radio transmit error: {}, message: {}'.format(e, message))
 
-    def read(self):
+    def receive(self):
         try:
-            return self.ser.readline()
+            message = self.serial.readline()
+            if message == '':
+                return None
+            else:
+                logging.info('Radio received message: {}'.format(message))
+                return json.loads(message)
         except Exception as e:
             logging.error('error: {}'.format(e))
-            return "ERROR"
+            return None
+
+    def set_port(port):
+        original_port = self.serial.port
+        self.serial.close()
+        self.serial.port = port
+        try:
+            self.serial.open()
+            if not self.serial.is_open:
+                raise
+            else:
+                logging.info('Radio switch port: {}'.format(port))
+        except Exception as e:
+            self.serial.port = original_port
+            self.serial.open()
+            logging.error('Radio reverting to original port: {}'.format(original_port))
+
 
     def sleep(self):
         #TODO: make it sleep
