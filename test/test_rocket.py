@@ -167,9 +167,9 @@ def test_coast_deploys_brakes_based_on_kinetics(rocket):
     def mock_kinetics_velocity():
         return { 'x': 0.0, 'y': 0.0, 'z': 70.6 }
     rocket.kinetics.velocity = mock_kinetics_velocity
-    def mock_kinetics_brake_percentage():
+    def mock_kinetics_brakes_percentage():
         return 0.321
-    rocket.kinetics.compute_brake_percentage = mock_kinetics_brake_percentage
+    rocket.kinetics.compute_brakes_percentage = mock_kinetics_brakes_percentage
 
     rocket.state_machine.set_state('coast')
     rocket.during_coast()
@@ -180,9 +180,9 @@ def test_coast_retracts_brakes_and_transitions_to_decent_drogue_at_apogee(rocket
     def mock_kinetics_velocity():
         return { 'x': 0.0, 'y': 0.0, 'z': 3.8 }
     rocket.kinetics.velocity = mock_kinetics_velocity
-    def mock_kinetics_brake_percentage():
+    def mock_kinetics_brakes_percentage():
         return 0.321
-    rocket.kinetics.compute_brake_percentage = mock_kinetics_brake_percentage
+    rocket.kinetics.compute_brakes_percentage = mock_kinetics_brakes_percentage
 
     rocket.state_machine.set_state('coast')
     rocket.during_coast()

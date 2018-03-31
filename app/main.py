@@ -60,10 +60,11 @@ class Rocket(Thread):
 
     def deactivate(self):
         if self.active:
+            self.kinetics.deactivate()
             self.active = False
             self.join(timeout=6)
             if self.is_alive():
-                raise Exception('Failed to deactivate rocekt model')
+                raise Exception('Failed to deactivate rocket model')
 
     def enter_state(self):
         self.last_state = {
@@ -97,7 +98,7 @@ class Rocket(Thread):
         self.kinetics.activate()
 
     def during_ground(self):
-        LAUNCH_ACCELERATION_THRESHOLD = 1 # m/s^2
+        LAUNCH_ACCELERATION_THRESHOLD = 1.5 # m/s^2
         message = self.device_factory.radio.receive()
         if message['action'] == 'launch' or self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
             self.launch()
@@ -115,7 +116,7 @@ class Rocket(Thread):
 
     def during_coast(self):
         APOGEE_VELOCTY_THRESHOLD = 8 # m/s
-        self.device_factory.brakes.deploy(self.kinetics.compute_brake_percentage())
+        self.device_factory.brakes.deploy(self.kinetics.compute_brakes_percentage())
         if self.kinetics.velocity()['z'] <= APOGEE_VELOCTY_THRESHOLD:
             self.deploy_drogue()
             self.device_factory.brakes.deploy(0.0)
@@ -154,7 +155,13 @@ class Rocket(Thread):
 
 
 if __name__ == '__main__':
-    from test.fixtures.dummy_device_factory import DummyDeviceFactory
-    device_factory = DummyDeviceFactory()
-    rocket1 = Rocket(device_factory)
-    rocket1.activate()
+    device_factory = None
+    if os.environ.has_key('ROCKET_PRODUCTION'):
+        from app.rocket.device_factory import DeviceFactory
+        device_factory = DeviceFactory()
+    else:
+        from test.fixtures.dummy_device_factory import DummyDeviceFactory
+        device_factory = DummyDeviceFactory()
+
+    rocket = Rocket(device_factory)
+    rocket.activate()
