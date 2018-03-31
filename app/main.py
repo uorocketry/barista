@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+import json
 
 from transitions import State, Machine
 from threading import Thread
@@ -137,6 +138,13 @@ class Rocket(Thread):
         TOUCHDOWN_VELOCITY_THRESHOLD = 0.0
         if self.kinetics.velocity()['z'] <= TOUCHDOWN_VELOCITY_THRESHOLD:
             self.touchdown()
+
+    # def parse_radio(self):
+    #     radio_data = self.device_factory.radio.receive()
+    #     if (radio_data == '') or (radio_data == None):
+    #         pass
+    #     elif:
+    #         parsed_data =
 
     def run(self):
         while self.active:
