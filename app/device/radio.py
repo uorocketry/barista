@@ -28,7 +28,7 @@ class Radio(object):
                 return None
             else:
                 logging.info('Radio received message: {}'.format(message))
-                return json.loads(message)
+                return json.loads(message) # unicode string
         except Exception as e:
             logging.error('error: {}'.format(e))
             return None

@@ -13,9 +13,11 @@ class Brakes(object):
 
     def deploy(self, percentage):
         if percentage < 0.0 or percentage > 1.0:
-            raise InvalidArguments("percentage must be in range (0.0, 1.0)")
-        self.percentage = percentage
-        self.servo.write(percentage)
+            e = "percentage must be in range (0.0, 1.0)"
+            logging.error('Brakes deploy error: {}, percentage: {}'.format(e, percentage))
+        else:
+            self.percentage = percentage
+            self.servo.write(percentage)
 
     def sweep(self):
         self.deploy(0)

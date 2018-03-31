@@ -101,13 +101,14 @@ class Rocket(Thread):
     def during_ground(self):
         LAUNCH_ACCELERATION_THRESHOLD = 1.5 # m/s^2
         message = self.device_factory.radio.receive()
-        if message['action'] == 'launch' or self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
+        if message['action'].encode('ascii') == 'launch' or self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
             self.launch()
-        elif message['action'] == 'sleep':
+        elif message['action'].encode('ascii') == 'sleep':
             self.sleep()
-        elif message['action'] == 'test_brakes':
+        elif message['action'].encode('ascii') == 'test_brakes':
             brakes_percentage = float(message['data'])
-            self.device_factory.brakes.deploy(brakes_percentage)
+            # self.device_factory.brakes.deploy(brakes_percentage)
+            self.device_factory.brakes.sweep()
 
     def during_powered(self):
         BURNOUT_ACCELERATION_THRESHOLD = 0.0
@@ -139,12 +140,16 @@ class Rocket(Thread):
         if self.kinetics.velocity()['z'] <= TOUCHDOWN_VELOCITY_THRESHOLD:
             self.touchdown()
 
-    # def parse_radio(self):
-    #     radio_data = self.device_factory.radio.receive()
-    #     if (radio_data == '') or (radio_data == None):
-    #         pass
-    #     elif:
-    #         parsed_data =
+    def parse_radio(self):
+        radio_receive = self.device_factory.radio.receive()
+        if (radio_receive == '') or (radio_receive == None):
+            e = "empty string received"
+            logging.error('Radio receive error: {}, received: {}'.format(e, radio_receive))
+        else:
+            self.radio_msg = {
+                'action': radio_receive['action'].encode('ascii'),
+                'data': radio_receive['data'].encode('ascii')
+            }
 
     def run(self):
         while self.active:
