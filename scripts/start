@@ -1,0 +1,23 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          rocket
+# Required-Start:    $local_fs $time $syslog
+# Required-Stop:     $local_fs $time $syslog
+# Default-Start:     $all
+# Default-Stop:      $all
+# Short-Description: rocket is the main python application to the rocket flight controller
+# Description:       This service connects to UART and I2C devices and should only be executed
+#                    in headless mode on a raspberry pi model 3.  All application logs can be
+#                    found in ~/barista/app/logs
+### END INIT INFO
+
+set -euo pipefail
+
+main() {
+  git pull -f https://github.com/uOstar/barista.git
+  sudo pip install -r requirements.txt
+
+  cd ~/barista && sudo python -m app.main
+}
+
+main "$@"

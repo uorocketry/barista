@@ -39,14 +39,3 @@ def test_write_full_open(servo_init_mock, servo_write_mock):
 
     servo_write_mock.assert_called_with(1.0)
     assert brakes.percentage == 1.0
-
-
-@patch.object(Servo, 'write')
-@patch.object(Servo, '__init__')
-def test_write_invalid_percentage_raises(servo_init_mock, servo_write_mock):
-    servo_init_mock.return_value = None
-    servo_write_mock.return_value = None
-
-    brakes = Brakes()
-    with pytest.raises(InvalidArguments):
-        brakes.deploy(-1)

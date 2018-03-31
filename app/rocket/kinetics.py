@@ -69,11 +69,11 @@ class Kinetics(Thread):
                 z=prev_position['z'] + delta_position[2])
 
             acceleration = self.acceleration()
-            logging.info("Acceleration x: {}, y: {}, z: {}".format(acceleration['x'], acceleration['y'], acceleration['z']))
+            logging.debug("Acceleration x: {}, y: {}, z: {}".format(acceleration['x'], acceleration['y'], acceleration['z']))
             velocity = self.velocity()
-            logging.info("Velocity x: {}, y: {}, z: {}".format(velocity['x'], velocity['y'], velocity['z']))
+            logging.debug("Velocity x: {}, y: {}, z: {}".format(velocity['x'], velocity['y'], velocity['z']))
             position = self.position()
-            logging.info("Position x: {}, y: {}, z: {}".format(position['x'], position['y'], position['z']))
+            logging.debug("Position x: {}, y: {}, z: {}".format(position['x'], position['y'], position['z']))
 
 class TimeWindow(object):
     def __init__(self, size=WINDOW_SIZE):
