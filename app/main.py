@@ -101,13 +101,11 @@ class Rocket(Thread):
     def during_ground(self):
         LAUNCH_ACCELERATION_THRESHOLD = 1.5 # m/s^2
         message = self.device_factory.radio.receive()
-        if message['action'].encode('ascii') == 'launch' or self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
+        if message['action'] == u'launch' or self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
             self.launch()
-        elif message['action'].encode('ascii') == 'sleep':
+        elif message['action'] == u'sleep':
             self.sleep()
-        elif message['action'].encode('ascii') == 'test_brakes':
-            brakes_percentage = float(message['data'])
-            # self.device_factory.brakes.deploy(brakes_percentage)
+        elif message['action'] == u'test_brakes':
             self.device_factory.brakes.sweep()
 
     def during_powered(self):
