@@ -5,6 +5,10 @@ while True:
     radio = Radio()
     message = radio.receive()
     command = raw_input('>>>')
+
+    if message['action'] == u'reply':
+        print(message['data'])
+
     if command == 'help':
         print('''
         help                 = prints this stuff
