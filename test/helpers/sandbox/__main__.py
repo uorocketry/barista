@@ -1,7 +1,7 @@
 import logging
 import pandas as pd
 from app.main import Rocket
-from test.helpers.dummy_device_factory import DummyGPS, DummyBrakes, DummyParachute, DummyRadio
+from test.fixtures.dummy_device_factory import DummyGPS, DummyBrakes, DummyParachute, DummyRadio
 from gyro import SandboxGyro
 from accelerometer import SandboxAccelerometer
 from altimeter import SandboxAltimeter

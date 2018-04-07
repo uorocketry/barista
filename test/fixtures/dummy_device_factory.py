@@ -127,16 +127,15 @@ class DummyGyro(object):
 
 class DummyParachute(object):
     def __init__(self):
-        self.logger = logging.getLogger()
         self.deployed_stage_one = False
         self.deployed_stage_two = False
 
     def deploy_stage_one(self):
-        self.logger.info('Deployed Stage One')
+        logging.info('Deployed Stage One')
         self.deployed_stage_one = True
 
     def deploy_stage_two(self):
-        self.logger.info('Deployed Stage Two')
+        logging.info('Deployed Stage Two')
         self.deployed_stage_two = True
 
 class DummyBrakes(object):
@@ -144,7 +143,7 @@ class DummyBrakes(object):
         self.percentage = 0.0
 
     def deploy(self, percentage):
-        logging.info('Deployed Brakes {}%'.format(percentage))
+        logging.info("Deployed Brakes: {}".format(str(percentage)))
         self.percentage = percentage
 
 class DummyDeviceFactory(object):

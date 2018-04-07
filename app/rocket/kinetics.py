@@ -44,7 +44,7 @@ class Kinetics(Thread):
     def position(self):
         return self.position_window.last()
 
-    def compute_brake_percentage(self):
+    def compute_brakes_percentage(self):
         return 1.0
 
     def run(self):
