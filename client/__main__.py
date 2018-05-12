@@ -25,7 +25,7 @@ class Client(object):
             message = self.radio.receive()
             if message['action'] == Radio.ACTION_CONNECTING:
                 print('Connected to rocket')
-                radio.transmit(Radio.ACTION_CONNECTING, True)
+                self.radio.transmit(Radio.ACTION_CONNECTING, True)
                 self.connected = True
 
     def run(self):
@@ -33,7 +33,7 @@ class Client(object):
         if message['action'] != None:
             print(message)
 
-        action = prompt("> ", history=self.history, completer=self.completer)
+        action = prompt(u'> ', history=self.history, completer=self.completer)
         if action in Radio.VALID_ACTIONS:
             self.radio.transmit(action, [])
         elif action == 'help':
