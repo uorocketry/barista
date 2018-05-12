@@ -4,8 +4,15 @@ import logging
 import json
 
 class Radio(object):
+    ACTION_WAKE='wake'
+    ACTION_SLEEP='sleep'
+    ACTION_LAUNCH='launch'
+    ACTION_TEST_BRAKES='test_brakes'
+    ACTION_POSITION_REPORT='position_report'
+
+    VALID_ACTIONS=[ACTION_WAKE, ACTION_SLEEP, ACTION_LAUNCH, ACTION_TEST_BRAKES, ACTION_POSITION_REPORT]
+
     def __init__(self,baud=9600, port='/dev/ttyUSB0'):
-    # def __init__(self,baud=9600, port='COM3'):
         try:
             self.serial = serial.Serial(port,baud,timeout=1)
             logging.info("Radio Initialized")
@@ -24,11 +31,12 @@ class Radio(object):
     def receive(self):
         try:
             message = self.serial.readline()
-            if message == '':
-                return None
+            logging.info('Radio received message: {}'.format(message))
+            message = json.loads(message) # unicode string
+            if message['action'] in Radio.VALID_ACTIONS:
+                return message
             else:
-                logging.info('Radio received message: {}'.format(message))
-                return json.loads(message) # unicode string
+                raise Expection('Invalid message')
         except Exception as e:
             logging.error('error: {}'.format(e))
             return None

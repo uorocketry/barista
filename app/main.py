@@ -87,8 +87,8 @@ class Rocket(Thread):
         if time.time() - self.state_data['last_radio_poll'] >= RADIO_POLLING_RATE:
             self.device_factory.radio.wake()
             time.sleep(RADIO_POLL_DURATION)
-            action = self.device_factory.radio.receive()['action']
-            if action == 'wake':
+            message = self.device_factory.radio.receive()
+            if message['action'] is self.device_factory.radio.ACTION_WAKE:
                 self.wake()
             else:
                 self.state_data['last_radio_poll'] = time.time()
@@ -101,11 +101,11 @@ class Rocket(Thread):
     def during_ground(self):
         LAUNCH_ACCELERATION_THRESHOLD = 1.5 # m/s^2
         message = self.device_factory.radio.receive()
-        if message['action'] == u'launch' or self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
+        if message['action'] is self.device_factory.radio.ACTION_LAUNCH or self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
             self.launch()
-        elif message['action'] == u'sleep':
+        elif message['action'] is self.device_factory.radio.ACTION_SLEEP:
             self.sleep()
-        elif message['action'] == u'test_brakes':
+        elif message['action'] is self.device_factory.radio.ACTION_TEST_BRAKES:
             self.device_factory.brakes.sweep()
 
     def during_powered(self):
