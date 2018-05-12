@@ -9,19 +9,8 @@ ADDR_BYTE = 0xEE
 
 
 VALID_COMMANDS = {
-    'read_all':{'command' : 0x20, 'length' : 9},
-    'read_gyro':{ 'command':0x21, 'length':3},
-    'read_accel' :{ 'command':0x22, 'length':3},
-    'read_compass' :{ 'command':0x23, 'length':3},
     'read_temp_c' :{ 'command':0x2B, 'length':1},
-    'read_temp_f' :{ 'command':0x2C, 'length':3},
-    'read_all_filtered' :{ 'command':0x25, 'length':9},
-    'read_gyro_filtered' :{ 'command':0x26, 'length':3},
     'read_accel_filtered' :{ 'command':0x27, 'length':3},
-    'read_compass_filtered' :{ 'command':0x28, 'length':3},
-    'read_linear_accel' :{ 'command':0x29, 'length':3},
-    'read_gyro_filtered_rad_s' :{ 'command':0x30, 'length':3},
-    'read_accel_filtered_g' :{ 'command': 0x31, 'length':3},
     'read_orientation_euler':{'command': 0x01, 'length':3},
 }
 
