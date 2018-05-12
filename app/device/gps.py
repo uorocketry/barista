@@ -104,8 +104,3 @@ class GPS(object):
         data['ground_speed'] = round(float(raw_data['GPRMC'][6]) * 0.514, 3)# m/s
 
         return data
-
-if __name__ == '__main__':
-    gps = GPS()
-    while 1:
-        print gps.read()

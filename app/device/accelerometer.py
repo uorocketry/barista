@@ -79,9 +79,3 @@ class Accelerometer(object):
             'z': round(xyz[2]*0.0042,4),
             'time':time()
         }
-
-
-if __name__ == '__main__':
-        accelerometer = Accelerometer()
-        sleep(1)
-        print accelerometer.read()
