@@ -14,9 +14,6 @@
 set -euo pipefail
 
 main() {
-  git pull 
-  sudo pip install -r requirements.txt
-
   cd ~/barista && sudo python -m app.main
 }
 
