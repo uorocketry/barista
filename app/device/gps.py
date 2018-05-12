@@ -4,7 +4,7 @@ import logging
 
 class GPS(object):
     def __init__(self):
-        self.ser = serial.Serial(port = '/dev/ttyAMA0', baudrate=9600)
+        self.ser = serial.Serial(port='/dev/ttyAMA0', baudrate=9600, timeout=1)
         self.set_data_rate(0.2)
         self.set_datatype('GPRMC_GPGGA')
 
