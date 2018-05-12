@@ -1,21 +1,50 @@
-from app.device.radio import Radio
+import sys
 import logging
-while True:
+from app.device.radio import Radio
 
-    radio = Radio()
-    message = radio.receive()
-    command = raw_input('>>>')
-    if command == 'help':
-        print('''
-        help                 = prints this stuff
-        connect <port>       = connect to XBee on port
-        send <action> <data> = send a message
-        ''')
-    elif command.startswith('connect'):
-        radio.set_port(command.split(' ')[1])
-    elif command.startswith('send'):
-        action = command.split(' ')[1]
-        data = command.split(' ')[2:-1] if len(command.split(' ')) > 2 else None
-        radio.transmit(action, data)
-    elif command == 'quit':
-        break
+from prompt_toolkit import prompt
+from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.contrib.completers import WordCompleter
+
+radio = Radio()
+completer = WordCompleter(Radio.VALID_ACTIONS, ignore_case=True)
+history = InMemoryHistory()
+
+
+class Client(object):
+    def __init__(self, radio_port):
+        self.completer = WordCompleter(Radio.VALID_ACTIONS, ignore_case=True)
+        self.history = InMemoryHistory()
+
+        self.radio = Radio(port=radio_port)
+        self.connected = False
+        if self.radio.connected():
+            self.connect_with_rocket()
+        else:
+            print('Could not connect with radio')
+
+    def connect_with_rocket(self):
+        print('Estabilishing connection with rocket...')
+        while not self.connected:
+            message = radio.receive()
+            if message['action'] is Radio.ACTION_CONNECTING:
+                print('Connected to rocket')
+                radio.transmit(Radio.ACTION_CONNECTING, True)
+                self.connected = True
+
+    def run(self):
+        message = radio.receive()
+        if message['action'] != None:
+            print(message)
+
+        action = prompt("> ", history=self.history, completer=self.completer)
+        if action in Radio.VALID_ACTIONS:
+            radio.transmit(action, [])
+        elif action == 'help':
+            print('The following are availible radio actions: {}'.format(Radio.VALID_ACTIONS))
+        else:
+            print('INVALID ACTION')
+
+client = Client(sys.argv[0])
+while client.connected:
+    client.run()

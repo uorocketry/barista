@@ -55,6 +55,7 @@ class DummyRadio(object):
     ACTION_SLEEP='sleep'
     ACTION_LAUNCH='launch'
     ACTION_TEST_BRAKES='test_brakes'
+    ACTION_CONNECTING='connecting'
     ACTION_POSITION_REPORT='position_report'
 
     def __init__(self):
@@ -68,7 +69,7 @@ class DummyRadio(object):
         self.action = None
         return data
 
-    def transmit(self, acion, data):
+    def transmit(self, action, data=None):
         logging.info("Radio transmit: action: {} data: {}".format(action, data))
 
     def mock_message(self, action, data):

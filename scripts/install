@@ -2,18 +2,18 @@
 set -euo pipefail
 
 set_sudo_all() {
-  echo username ALL=(ALL) NOPASSWD: ALL > /etc/sudoers
+  echo "username ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers
 }
 
 set_production_env() {
   if [ -z "ROCKET_PRODUCTION" ]; then
-    echo export ROCKET_PRODUCTION=True > .bashrc
+    echo "ROCKET_PRODUCTION=True" > /etc/enviroment
     set_sudo_all()
   fi
 }
 
 set_start_on_boot() {
-  echo ~/barista/scripts/start > /etc/init.d/rocket
+  echo "~/barista/scripts/start" > /etc/init.d/rocket
 }
 
 main() {

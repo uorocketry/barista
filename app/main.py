@@ -10,6 +10,7 @@ from app.rocket.kinetics import Kinetics
 
 class Rocket(Thread):
     states = [
+        State(name='connecting',     on_enter=['enter_state']),
         State(name='sleep',          on_enter=['enter_state', 'enter_sleep'], on_exit='exit_sleep'),
         State(name='ground',         on_enter=['enter_state']),
         State(name='powered',        on_enter=['enter_state']),
@@ -18,6 +19,7 @@ class Rocket(Thread):
         State(name='descent_main',   on_enter=['enter_state', 'on_enter_descent_main'])
     ]
     transitions = [
+        { 'trigger': 'connected', 'source': 'connecting', 'dest': 'ground' },
         { 'trigger': 'launch', 'source': 'ground', 'dest': 'powered' },
         { 'trigger': 'burnout', 'source': 'powered', 'dest': 'coast' },
         { 'trigger': 'deploy_drogue', 'source': 'coast', 'dest': 'descent_drogue' },
@@ -32,7 +34,7 @@ class Rocket(Thread):
             model=self,
             states=Rocket.states,
             transitions=Rocket.transitions,
-            initial='ground'
+            initial='connecting'
         )
         self.last_state = {
             'name': 'ground',
@@ -73,7 +75,6 @@ class Rocket(Thread):
             'time': time.time()
         }
         self.state_data = {}
-        logging.info('hi')
 
     def enter_sleep(self):
         self.kinetics.deactivate()
@@ -82,7 +83,7 @@ class Rocket(Thread):
 
     def during_sleep(self):
         RADIO_POLLING_RATE = 10000 # seconds
-        RADIO_POLL_DURATION = 10
+        RADIO_POLL_DURATION = 15
 
         if time.time() - self.state_data['last_radio_poll'] >= RADIO_POLLING_RATE:
             self.device_factory.radio.wake()
@@ -97,6 +98,15 @@ class Rocket(Thread):
     def exit_sleep(self):
         self.device_factory.wake_all()
         self.kinetics.activate()
+
+    def during_connecting(self):
+        RADIO_CONNECTION_TIMEOUT = 15
+        self.device_factory.radio.transmit(self.device_factory.radio.ACTION_CONNECTING)
+        time.sleep(RADIO_CONNECTION_TIMEOUT)
+        message = self.device_factory.radio.receive()
+        if message['action'] is self.device_factory.radio.ACTION_CONNECTING:
+            logging.info('Connected to client')
+            self.connected()
 
     def during_ground(self):
         LAUNCH_ACCELERATION_THRESHOLD = 1.5 # m/s^2
@@ -151,7 +161,9 @@ class Rocket(Thread):
 
     def run(self):
         while self.active:
-            if self.state == 'sleep':
+            if self.state == 'connecting':
+                self.during_connecting()
+            elif self.state == 'sleep':
                 self.during_sleep()
             elif self.state == 'ground':
                 self.during_ground()

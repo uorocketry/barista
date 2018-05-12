@@ -9,11 +9,24 @@ def test_ignores_invalid_messages():
     radio = Radio()
     radio.serial = DummySerial(json.dumps(invalid_message))
 
-    assert radio.receive() == None
+    message = radio.receive()
+
+    assert message['action'] == None
+    assert message['data'] == None
 
 def test_valid_actions_contain_no_duplicates():
     radio = Radio()
     assert len(radio.VALID_ACTIONS) is len(set(radio.VALID_ACTIONS))
+
+def test_captures_connecting_message():
+    expected_message = {'action': Radio.ACTION_CONNECTING, 'data': []}
+    radio = Radio()
+    radio.serial = DummySerial(json.dumps(expected_message))
+
+    message = radio.receive()
+
+    assert message['action'] == expected_message['action']
+    assert message['data'] == expected_message['data']
 
 def test_captures_wake_message():
     expected_message = {'action': Radio.ACTION_WAKE, 'data': []}

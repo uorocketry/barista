@@ -9,17 +9,19 @@ class Radio(object):
     ACTION_LAUNCH='launch'
     ACTION_TEST_BRAKES='test_brakes'
     ACTION_POSITION_REPORT='position_report'
+    ACTION_CONNECTING='connecting'
 
-    VALID_ACTIONS=[ACTION_WAKE, ACTION_SLEEP, ACTION_LAUNCH, ACTION_TEST_BRAKES, ACTION_POSITION_REPORT]
+    VALID_ACTIONS=[ACTION_WAKE, ACTION_SLEEP, ACTION_LAUNCH, ACTION_TEST_BRAKES, ACTION_POSITION_REPORT, ACTION_CONNECTING]
 
     def __init__(self,baud=9600, port='/dev/ttyUSB0'):
         try:
             self.serial = serial.Serial(port,baud,timeout=1)
             logging.info("Radio Initialized")
         except Exception as e:
+            self.serial = None
             logging.error('error: {}'.format(e))
 
-    def transmit(self, action, data):
+    def transmit(self, action, data=None):
         message = json.dumps({ 'action': action, 'data': data })
         try:
             encoded_message = bytearray(message, 'ascii')
@@ -39,7 +41,7 @@ class Radio(object):
                 raise Expection('Invalid message')
         except Exception as e:
             logging.error('error: {}'.format(e))
-            return None
+            return { 'action': None, 'data': None }
 
     def set_port(port):
         original_port = self.serial.port
@@ -56,6 +58,8 @@ class Radio(object):
             self.serial.open()
             logging.error('Radio reverting to original port: {}'.format(original_port))
 
+    def connected(self):
+        return self.serial != None and self.serial.is_open
 
     def sleep(self):
         #TODO: make it sleep
