@@ -16,15 +16,13 @@ def run_around_tests(rocket):
 
 def test_sleep_puts_all_devices_to_sleep(rocket):
     assert not rocket.device_factory.altimeter.sleeping
-    assert not rocket.device_factory.accelerometer.sleeping
-    assert not rocket.device_factory.gyro.sleeping
+    assert not rocket.device_factory.imu.sleeping
     assert not rocket.device_factory.radio.sleeping
 
     rocket.sleep()
 
     assert rocket.device_factory.altimeter.sleeping
-    assert rocket.device_factory.accelerometer.sleeping
-    assert rocket.device_factory.gyro.sleeping
+    assert rocket.device_factory.imu.sleeping
     assert rocket.device_factory.radio.sleeping
 
 
@@ -42,8 +40,7 @@ def test_sleep_transitions_to_ground_when_radio_recieves_wake_action(rocket):
 
     assert rocket.state == 'ground'
     assert not rocket.device_factory.altimeter.sleeping
-    assert not rocket.device_factory.accelerometer.sleeping
-    assert not rocket.device_factory.gyro.sleeping
+    assert not rocket.device_factory.imu.sleeping
     assert not rocket.device_factory.radio.sleeping
 
 def test_continue_to_sleep_if_radio_does_not_send_wake(rocket):
@@ -60,8 +57,7 @@ def test_continue_to_sleep_if_radio_does_not_send_wake(rocket):
 
     assert rocket.state == 'sleep'
     assert rocket.device_factory.altimeter.sleeping
-    assert rocket.device_factory.accelerometer.sleeping
-    assert rocket.device_factory.gyro.sleeping
+    assert rocket.device_factory.imu.sleeping
     assert rocket.device_factory.radio.sleeping
 
 def test_continue_to_sleep_if_polled_within_last_10000_seconds(rocket):
@@ -78,8 +74,7 @@ def test_continue_to_sleep_if_polled_within_last_10000_seconds(rocket):
 
     assert rocket.state == 'sleep'
     assert rocket.device_factory.altimeter.sleeping
-    assert rocket.device_factory.accelerometer.sleeping
-    assert rocket.device_factory.gyro.sleeping
+    assert rocket.device_factory.imu.sleeping
     assert rocket.device_factory.radio.sleeping
 
 def test_ground_transitions_to_sleep_when_radio_receives_sleep_action(rocket):
@@ -94,8 +89,7 @@ def test_ground_transitions_to_sleep_when_radio_receives_sleep_action(rocket):
 
     assert rocket.state == 'sleep'
     assert rocket.device_factory.altimeter.sleeping
-    assert rocket.device_factory.accelerometer.sleeping
-    assert rocket.device_factory.gyro.sleeping
+    assert rocket.device_factory.imu.sleeping
     assert rocket.device_factory.radio.sleeping
 
 

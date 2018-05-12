@@ -2,16 +2,14 @@ import logging
 import pandas as pd
 from app.main import Rocket
 from test.fixtures.dummy_device_factory import DummyGPS, DummyBrakes, DummyParachute, DummyRadio
-from gyro import SandboxGyro
-from accelerometer import SandboxAccelerometer
+from imu import SandboxIMU
 from altimeter import SandboxAltimeter
 from app.rocket.kinetics import Kinetics,TimeWindow
 import time
 
 class SandboxDeviceFactory(object):
     def __init__(self, simulation_data):
-        self.accelerometer = SandboxAccelerometer(self.filter_dataframe(simulation_data, 'acceleration'))
-        self.gyro = SandboxGyro(self.filter_dataframe(simulation_data,'rate (deg/s)'))
+        self.imu = SandboxIMU(self.filter_dataframe(simulation_data, 'imu'))
         self.altimeter = SandboxAltimeter(self.filter_dataframe(simulation_data,'Altitude'))
         self.radio = DummyRadio()
         self.gps = DummyGPS()
@@ -43,8 +41,7 @@ class Sandbox(object):
         self.rocket.activate()
 
         self.launch_time = time.time()
-        self.rocket.device_factory.accelerometer.launch(self.launch_time)
-        self.rocket.device_factory.gyro.launch(self.launch_time)
+        self.rocket.device_factory.imu.launch(self.launch_time)
         self.rocket.device_factory.altimeter.launch(self.launch_time)
         logging.info("Simulation Started")
 
@@ -54,9 +51,8 @@ class Sandbox(object):
         self.rocket.deactivate()
         self.rocket = None
 
-        self.device_factory.accelerometer.reset()
+        self.device_factory.imu.reset()
         self.device_factory.altimeter.reset()
-        self.device_factory.gyro.reset()
 
     def send_comms(self, action=None, data=None):
         self.rocket.device_factory.radio.mock_message(action,data)

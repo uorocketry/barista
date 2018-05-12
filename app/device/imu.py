@@ -26,17 +26,33 @@ class IMU(object):
     #sample sensor read functions
     def read_temp_c(self):
         self.send_command('read_temp_c')
-        return self.parse_byte_array(self.read())
+        temp = self.parse_byte_array(self.read())
+        return{
+            'temperature':temp[0],
+            'time':time()
+        }
 
 
     def read_orientation_euler(self):
         self.send_command('read_orientation_euler')
-        return self.parse_byte_array(self.read())
+        xyz = self.parse_byte_array(self.read())
+        return{
+            'x':xyz[0],
+            'y':xyz[1],
+            'z':xyz[2],
+            'time':time()
+        }
 
 
     def read_accel_filtered(self):
         self.send_command('read_accel_filtered')
-        return self.parse_byte_array(self.read())
+        xyz = self.parse_byte_array(self.read())
+        return{
+            'x':xyz[0]*9.81,
+            'y':xyz[1]*9.81,
+            'z':xyz[2]*9.81,
+            'time':time()
+        }
 
 
     def send_command(self,command,param=0x00):
@@ -50,6 +66,10 @@ class IMU(object):
         data = self.i2c.read_block(0x00, self.read_length)
         return data
 
+
+    def sleep(self):
+        #TODO: implement me
+        pass
 
     def parse_byte_array(self,array):
         a = []

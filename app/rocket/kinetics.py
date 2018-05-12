@@ -8,7 +8,7 @@ WINDOW_SIZE = 50
 
 class Kinetics(Thread):
     def __init__(self, device_factory):
-        self.accelerometer = device_factory.accelerometer
+        self.imu = device_factory.imu
 
         self.time_series = deque(np.arange(WINDOW_SIZE), maxlen=WINDOW_SIZE)
 
@@ -49,7 +49,7 @@ class Kinetics(Thread):
 
     def run(self):
         while self.active:
-            measurement = self.accelerometer.read()
+            measurement = self.imu.read_accel_filtered()
             self.time_series.append(measurement['time'])
             self.acceleration_window.append(x=measurement['x'], y=measurement['y'], z=measurement['z'])
 

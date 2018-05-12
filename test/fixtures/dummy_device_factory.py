@@ -2,11 +2,11 @@ from time import time
 import random
 import logging
 
-class DummyAccelerometer(object):
+class DummyIMU(object):
     def __init__(self):
         self.sleeping = False
 
-    def read(self):
+    def read_accel_filtered(self):
         if self.sleeping:
             return {
                 'x': 0.0,
@@ -104,32 +104,6 @@ class DummyGPS(object):
     def wake(self):
         self.sleeping = False
 
-class DummyGyro(object):
-    def __init__(self):
-        self.sleeping = False
-
-    def read(self):
-        if self.sleeping:
-            return {
-                'pitch': 0.0,
-                'roll': 0.0,
-                'yaw': 0.0,
-                'time':time()
-            }
-        else:
-            return {
-                'pitch': round(random.uniform(0,360),4),
-                'roll': round(random.uniform(0,360),4),
-                'yaw': round(random.uniform(0,360),4),
-                'time': time()
-            }
-
-    def sleep(self):
-        self.sleeping = True
-
-    def wake(self):
-        self.sleeping = False
-
 
 class DummyParachute(object):
     def __init__(self):
@@ -154,24 +128,21 @@ class DummyBrakes(object):
 
 class DummyDeviceFactory(object):
     def __init__(self):
-        self.accelerometer = DummyAccelerometer()
+        self.imu = DummyIMU()
         self.altimeter = DummyAltimeter()
         self.gps = DummyGPS()
-        self.gyro = DummyGyro()
         self.parachute = DummyParachute()
         self.brakes = DummyBrakes()
         self.radio = DummyRadio()
 
     def sleep_all(self):
-        self.accelerometer.sleep()
+        self.imu.sleep()
         self.altimeter.sleep()
         self.gps.sleep()
-        self.gyro.sleep()
         self.radio.sleep()
 
     def wake_all(self):
-        self.accelerometer.wake()
+        self.imu.wake()
         self.altimeter.wake()
         self.gps.wake()
-        self.gyro.wake()
         self.radio.wake()
