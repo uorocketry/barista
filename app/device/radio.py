@@ -13,7 +13,7 @@ class Radio(object):
 
     VALID_ACTIONS=[ACTION_WAKE, ACTION_SLEEP, ACTION_LAUNCH, ACTION_TEST_BRAKES, ACTION_POSITION_REPORT, ACTION_CONNECTING]
 
-    def __init__(self, port='/dev/ttySB0',baud=9600):
+    def __init__(self, port='/dev/ttyUSB0',baud=9600):
         try:
             self.serial = serial.Serial(port,baud,timeout=1)
             logging.info("Radio Initialized")
@@ -38,7 +38,7 @@ class Radio(object):
             if message['action'] in Radio.VALID_ACTIONS:
                 return message
             else:
-                raise Expection('Invalid message')
+                raise Exception('Invalid message')
         except Exception as e:
             logging.error('error: {}'.format(e))
             return { 'action': None, 'data': None }
