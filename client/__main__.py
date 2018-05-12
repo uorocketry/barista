@@ -23,7 +23,7 @@ class Client(object):
         print('Estabilishing connection with rocket...')
         while not self.connected:
             message = self.radio.receive()
-            if message['action'] is Radio.ACTION_CONNECTING:
+            if message['action'] == Radio.ACTION_CONNECTING:
                 print('Connected to rocket')
                 radio.transmit(Radio.ACTION_CONNECTING, True)
                 self.connected = True

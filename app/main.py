@@ -89,7 +89,7 @@ class Rocket(Thread):
             self.device_factory.radio.wake()
             time.sleep(RADIO_POLL_DURATION)
             message = self.device_factory.radio.receive()
-            if message['action'] is self.device_factory.radio.ACTION_WAKE:
+            if message['action'] == self.device_factory.radio.ACTION_WAKE:
                 self.wake()
             else:
                 self.state_data['last_radio_poll'] = time.time()
@@ -104,18 +104,18 @@ class Rocket(Thread):
         self.device_factory.radio.transmit(self.device_factory.radio.ACTION_CONNECTING)
         time.sleep(RADIO_CONNECTION_TIMEOUT)
         message = self.device_factory.radio.receive()
-        if message['action'] is self.device_factory.radio.ACTION_CONNECTING:
+        if message['action'] == self.device_factory.radio.ACTION_CONNECTING:
             logging.info('Connected to client')
             self.connected()
 
     def during_ground(self):
         LAUNCH_ACCELERATION_THRESHOLD = 1.5 # m/s^2
         message = self.device_factory.radio.receive()
-        if message['action'] is self.device_factory.radio.ACTION_LAUNCH or self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
+        if message['action'] == self.device_factory.radio.ACTION_LAUNCH or self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
             self.launch()
-        elif message['action'] is self.device_factory.radio.ACTION_SLEEP:
+        elif message['action'] == self.device_factory.radio.ACTION_SLEEP:
             self.sleep()
-        elif message['action'] is self.device_factory.radio.ACTION_TEST_BRAKES:
+        elif message['action'] == self.device_factory.radio.ACTION_TEST_BRAKES:
             self.device_factory.brakes.sweep()
 
     def during_powered(self):

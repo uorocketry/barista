@@ -16,7 +16,7 @@ def test_ignores_invalid_messages():
 
 def test_valid_actions_contain_no_duplicates():
     radio = Radio()
-    assert len(radio.VALID_ACTIONS) is len(set(radio.VALID_ACTIONS))
+    assert len(radio.VALID_ACTIONS) == len(set(radio.VALID_ACTIONS))
 
 def test_captures_connecting_message():
     expected_message = {'action': Radio.ACTION_CONNECTING, 'data': []}
