@@ -29,6 +29,9 @@ def test_sleep_puts_all_devices_to_sleep(rocket):
 
 
 def test_sleep_transitions_to_ground_when_radio_recieves_wake_action(rocket):
+    def mock_kinetics_acceleration():
+        return { 'x': 0.0, 'y': 0.0, 'z': 1.4 }
+    rocket.kinetics.acceleration = mock_kinetics_acceleration
     def mock_radio_receive():
         return { 'action':'wake', 'data': [] }
     rocket.device_factory.radio.receive = mock_radio_receive
@@ -44,6 +47,9 @@ def test_sleep_transitions_to_ground_when_radio_recieves_wake_action(rocket):
     assert not rocket.device_factory.radio.sleeping
 
 def test_continue_to_sleep_if_radio_does_not_send_wake(rocket):
+    def mock_kinetics_acceleration():
+        return { 'x': 0.0, 'y': 0.0, 'z': 1.4 }
+    rocket.kinetics.acceleration = mock_kinetics_acceleration
     def mock_radio_receive():
         return { 'action':'wuba luba dub dub', 'data': [] }
     rocket.device_factory.radio.receive = mock_radio_receive
@@ -59,6 +65,9 @@ def test_continue_to_sleep_if_radio_does_not_send_wake(rocket):
     assert rocket.device_factory.radio.sleeping
 
 def test_continue_to_sleep_if_polled_within_last_10000_seconds(rocket):
+    def mock_kinetics_acceleration():
+        return { 'x': 0.0, 'y': 0.0, 'z': 1.4 }
+    rocket.kinetics.acceleration = mock_kinetics_acceleration
     def mock_radio_receive():
         return { 'action':'wake', 'data': [] }
     rocket.device_factory.radio.receive = mock_radio_receive
@@ -74,6 +83,9 @@ def test_continue_to_sleep_if_polled_within_last_10000_seconds(rocket):
     assert rocket.device_factory.radio.sleeping
 
 def test_ground_transitions_to_sleep_when_radio_receives_sleep_action(rocket):
+    def mock_kinetics_acceleration():
+        return { 'x': 0.0, 'y': 0.0, 'z': 1.4 }
+    rocket.kinetics.acceleration = mock_kinetics_acceleration
     def mock_radio_receive():
         return { 'action':'sleep', 'data': [] }
     rocket.device_factory.radio.receive = mock_radio_receive
@@ -88,6 +100,9 @@ def test_ground_transitions_to_sleep_when_radio_receives_sleep_action(rocket):
 
 
 def test_ground_transitions_to_powered_when_radio_receives_launch_action(rocket):
+    def mock_kinetics_acceleration():
+        return { 'x': 0.0, 'y': 0.0, 'z': 1.4 }
+    rocket.kinetics.acceleration = mock_kinetics_acceleration
     def mock_radio_receive():
         return { 'action':'launch', 'data': [] }
     rocket.device_factory.radio.receive = mock_radio_receive
@@ -97,6 +112,9 @@ def test_ground_transitions_to_powered_when_radio_receives_launch_action(rocket)
     assert rocket.state == 'powered'
 
 def test_continue_in_ground_transitions_if_radio_does_not_send_launch(rocket):
+    def mock_kinetics_acceleration():
+        return { 'x': 0.0, 'y': 0.0, 'z': 1.4 }
+    rocket.kinetics.acceleration = mock_kinetics_acceleration
     def mock_radio_receive():
         return { 'action':'lick lick lick my ballz', 'data': [] }
     rocket.device_factory.radio.receive = mock_radio_receive
@@ -107,7 +125,7 @@ def test_continue_in_ground_transitions_if_radio_does_not_send_launch(rocket):
 
 def test_ground_transitions_to_powered_when_acceleration_over_threshold(rocket):
     def mock_kinetics_acceleration():
-        return { 'x': 0.0, 'y': 0.0, 'z': 2.2 }
+        return { 'x': 0.0, 'y': 0.0, 'z': 1.6 }
     rocket.kinetics.acceleration = mock_kinetics_acceleration
 
     rocket.during_ground()

@@ -1,4 +1,5 @@
 import time
+import logging
 
 from app.utils.servo import Servo
 from app.utils.exceptions import InvalidArguments
