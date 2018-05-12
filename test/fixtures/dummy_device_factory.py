@@ -51,6 +51,12 @@ class DummyAltimeter(object):
 
 
 class DummyRadio(object):
+    ACTION_WAKE='wake'
+    ACTION_SLEEP='sleep'
+    ACTION_LAUNCH='launch'
+    ACTION_TEST_BRAKES='test_brakes'
+    ACTION_POSITION_REPORT='position_report'
+
     def __init__(self):
         self.sleeping = False
         self.action = None
