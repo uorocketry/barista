@@ -3,7 +3,7 @@ from time import sleep
 import logging
 
 MPL3115A2_ADDRESS = 0x60
-STATUS = 0x00
+STATUS_REG = 0x00
 OUT_P_MSB = 0x01
 OUT_P_DELTA_CSB = 0x08
 OUT_P_DELTA_MSB = 0X07
@@ -13,58 +13,47 @@ CTRL_REG1 = 0x26
 PT_DATA_CFG = 0x13
 BAR_IN_MSB = 0x14
 
-CONNECTION_RETRY_LIMIT = 5
 
 class Altimeter(object):
     def __init__(self):
-        tries = 0
-        while tries < CONNECTION_RETRY_LIMIT:
-            try:
-                self.bus = I2C(1, MPL3115A2_ADDRESS)
-                #Set oversample rate to 128
-                current_setting = self.bus.read_byte(CTRL_REG1)
-                new_setting = 0xb8
-                self.bus.write_byte(MPL3115A2_ADDRESS, CTRL_REG1, new_setting)
-            except IOError:
-                tries += 1
-                logging.error('Could not connect to Altimeter. Retry %i', tries)
-                sleep(3)
+        self.bus = I2C(1, MPL3115A2_ADDRESS)
 
-        if tries >= CONNECTION_RETRY_LIMIT:
-            raise IOError('Could not connect to Altimeter')
+        self.bus.write_byte(CTRL_REG1, 0xB8)
 
-        self.bus.write_byte(MPL3115A2_ADDRESS, PT_DATA_CFG, OUT_P_DELTA_MSB)
-        setting = self.bus.read_byte(MPL3115A2_ADDRESS, CTRL_REG1)
+        self.bus.write_byte(PT_DATA_CFG, 0x07)
 
-        if (setting & 0x02) == 0:
-            self.bus.write_byte(MPL3115A2_ADDRESS, CTRL_REG1, (setting | 0x02))
+        self.bus.write_byte(CTRL_REG1, 0xB9) #activate polling
 
-    def read(self):
-        raw_data = self.bus.read_block(MPL3115A2_ADDRESS, OUT_P_MSB, 3)
-        try:
-            return Altimeter.parse_raw_data(raw_data)
-        except Exception as e:
-            logging.error('error: %s, raw_data: %s', e, raw_data)
-            return 0
+        status = self.bus.read_byte(STATUS_REG)
+        while (status & 0x08) == False:
+            self.bus.read_byte(STATUS_REG)
+            ## self.bus.write_byte(MCTRL_REG1, (setting | 0x02))
+
+    def read_pressure(self):
+        raw_data = self.bus.read_block(OUT_P_MSB, 3)
+
+        return Altimeter.parse_raw_data(raw_data)
+
+    def read_temp(self):
+        raw_data = self.bus.read_block(OUT_P_MSB, 3)
+
+        return Altimeter.parse_raw_data(raw_data)
 
     def read_bar_setting(self):
-        setting = self.bus.read_block(MPL3115A2_ADDRESS, BAR_IN_MSB, 2)
+        setting = self.bus.read_block(BAR_IN_MSB, 2)
         try:
             return parse_raw_data(setting)*2
         except Exception as e:
             logging.error('error: %s, raw_data: %s', e, raw_data)
             return(-1)
 
-
-
     #Parameter is bar setting/2
     def write_bar_setting(self, input):
         if input < 0 or input > 131071:
             raise ValueError('Input out of acceptable bounds.')
         else:
-            self.bus.write_block(MPL3115A2_ADDRESS, BAR_IN_MSB, int(input))
+            self.bus.write_block(BAR_IN_MSB, int(input))
             setting = read_bar_setting()
-
 
     @staticmethod
     def parse_raw_data(raw_data):
