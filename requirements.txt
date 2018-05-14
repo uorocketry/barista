@@ -4,3 +4,4 @@ transitions
 smbus2
 RPi.GPIO
 prompt_toolkit
+mock
