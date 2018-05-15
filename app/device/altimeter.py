@@ -1,44 +1,44 @@
 from app.utils.i2c import I2C
 from time import sleep
 import logging
+import numpy as np
+
 
 MPL3115A2_ADDRESS = 0x60
 STATUS_REG = 0x00
 OUT_P_MSB = 0x01
-OUT_P_DELTA_CSB = 0x08
-OUT_P_DELTA_MSB = 0X07
 OUT_T_MSB = 0x04
-WHOAMI = 0x0C
 CTRL_REG1 = 0x26
-PT_DATA_CFG = 0x13
-BAR_IN_MSB = 0x14
+OFF_H = 0x2D
 
 
 class Altimeter(object):
     def __init__(self):
         self.bus = I2C(1, MPL3115A2_ADDRESS)
 
-        self.bus.write_byte(CTRL_REG1, 0xB8)
+        self.bus.write_byte(CTRL_REG1, 0xB8) #OSR = 128 to set to altimeter TODO: delete later
 
         self.bus.write_byte(PT_DATA_CFG, 0x07)
 
         self.bus.write_byte(CTRL_REG1, 0xB9) #activate polling
+        offset_height = 101000 ## Ottawa
+        self.bus.write_byte(OFF_H, offset_height)
 
         status = self.bus.read_byte(STATUS_REG)
+
         while (status & 0x08) == False:
             self.bus.read_byte(STATUS_REG)
-            ## self.bus.write_byte(MCTRL_REG1, (setting | 0x02))
 
-    def read_pressure(self):
+    def read_altitude(self):
         raw_data = self.bus.read_block(OUT_P_MSB, 3)
-
-        return Altimeter.parse_raw_data(raw_data)
+        return Altimeter.parse_raw_data_altitude(raw_data)
 
     def read_temp(self):
-        raw_data = self.bus.read_block(OUT_P_MSB, 3)
+        raw_data = self.bus.read_block(OUT_P_MSB, 2)
+        return Altimeter.parse_raw_data_temp(raw_data)
 
-        return Altimeter.parse_raw_data(raw_data)
 
+##//MAYBE
     def read_bar_setting(self):
         setting = self.bus.read_block(BAR_IN_MSB, 2)
         try:
@@ -54,25 +54,32 @@ class Altimeter(object):
         else:
             self.bus.write_block(BAR_IN_MSB, int(input))
             setting = read_bar_setting()
+##MAYBE
 
     @staticmethod
-    def parse_raw_data(raw_data):
-        alt_int = 0
-        alt_frac = 0
+    def parse_raw_data_altitude(raw_data):
+
         str_msb = '{0:08b}'.format(raw_data[0])
         str_csb = '{0:08b}'.format(raw_data[1])
         str_lsb = '{0:08b}'.format(raw_data[2])
 
-        alt_int_bin = str_msb + str_csb + str_lsb[0] + str_lsb[1] + str_lsb[2] + str_lsb[3]
-        alt_frac_bin = str_lsb[4] + str_lsb[5] + rstr_lsb[6] + str_lsb[7]
+        parsed_data = str_msb + str_csb + str_lsb[3] + str_lsb[2] + str_lsb[1] + str_lsb[0]
 
-        alt_frac = int(alt_frac_bin,2)/16
+        parsed_altitude = int(parsed_data, 2)
+        parsed_altitude = np.binary_repr(parsed_altitude, width = 20)
+        parsed_altitude = int(parsed_altitude, 2)
 
-        if(alt_int_bin[0] == '1'):
-            alt_int = -1*(32768 - int(alt_int_bin, 2))
-            alt_frac = -1*alt_frac
-        else:
-            alt_int = int(alt_int_bin,2)
+        return parsed_altitude
 
-        alt = alt_int + alt_frac
-        return alt
+    def parse_raw_data_temp(raw_data):
+
+        str_msb = '{0:08b}'.format(raw_data[0])
+        str_lsb = '{0:08b}'.format(raw_data[1])
+
+        parsed_data = str_msb + str_lsb[3] + str_lsb[2] + str_lsb[1] + str_lsb[0]
+
+        parsed_temp = int(parsed_data, 2)
+        parsed_temp = np.binary_repr(parsed_temp, width = 16)
+        parsed_temp = int(parsed_temp, 2)
+
+        return parsed_temp
