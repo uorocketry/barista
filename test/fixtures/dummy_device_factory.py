@@ -22,6 +22,22 @@ class DummyIMU(object):
                 'time': time()
             }
 
+    def read_orientation_euler(self):
+        if self.sleeping:
+            return {
+                'x': 0.0,
+                'y': 0.0,
+                'z': 0.0,
+                'time':time()
+            }
+        else:
+            return {
+                'x': round(random.uniform(-180,180),4),
+                'y': round(random.uniform(-180,180),4),
+                'z': round(random.uniform(-180,180),4),
+                'time': time()
+            }
+
     def sleep(self):
         self.sleeping = True
 

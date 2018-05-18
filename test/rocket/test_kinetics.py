@@ -60,4 +60,39 @@ def test_velocity_is_computed_from_imu_and_altimeter(kinetics):
     kinetics.altimeter.read = mock_altitude
 
     kinetics.run()
-    assert { 'x': 1.0, 'y': 2.0, 'z': 6.5 } == kinetics.acceleration()
+    assert { 'x': 1.0, 'y': 2.0, 'z': 6.5 } == kinetics.velocity()
+
+def test_position_is_computed_from_imu_and_altimeter(kinetics):
+    def mock_accleration():
+        return { 'x': 1.0, 'y': 2.0, 'z': 3.0, 'time': 0 }
+    kinetics.imu.read_accel_filtered = mock_accleration
+    def mock_altitude():
+        return 100
+    kinetics.altimeter.read = mock_altitude
+    kinetics.run()
+
+    def mock_accleration():
+        return { 'x': 1.0, 'y': 2.0, 'z': 3.0, 'time': 1 }
+    kinetics.imu.read_accel_filtered = mock_accleration
+    def mock_altitude():
+        return 110
+    kinetics.altimeter.read = mock_altitude
+    kinetics.run()
+
+    def mock_accleration():
+        return { 'x': 1.0, 'y': 2.0, 'z': 3.0, 'time': 2 }
+    kinetics.imu.read_accel_filtered = mock_accleration
+    def mock_altitude():
+        return 120
+    kinetics.altimeter.read = mock_altitude
+    kinetics.run()
+
+    assert { 'x': 1.0, 'y': 4.0, 'z': 110 } == kinetics.position()
+
+def test_predicted_apogee_computes_correct_value(kinetics):
+    kinetics.orientation_window.append({ 'x': 1.0, 'y': 1.0, 'z': -9.8 })
+    kinetics.acceleration_window.append({ 'x': 1.0, 'y': 1.0, 'z': -9.8 })
+    kinetics.velocity_window.append({ 'x': 1.0, 'y': 1.0, 'z': 1.0 })
+    kinetics.position_window.append({ 'x': 1.0, 'y': 1.0, 'z': 1.0 })
+
+    
