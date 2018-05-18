@@ -33,3 +33,31 @@ def test_start_asynchonously_updates_position(kinetics):
     final_position = kinetics.position()
     kinetics.deactivate()
     assert initial_position != final_position
+
+def test_acceleration_is_read_directly_from_imu(kinetics):
+    def mock_accleration():
+        return { 'x': 1.0, 'y': 2.0, 'z': 3.0, 'time': 0 }
+    kinetics.imu.read_accel_filtered = mock_accleration
+
+    kinetics.run()
+
+    assert { 'x': 1.0, 'y': 2.0, 'z': 3.0 } == kinetics.acceleration()
+
+def test_velocity_is_computed_from_imu_and_altimeter(kinetics):
+    def mock_accleration():
+        return { 'x': 1.0, 'y': 2.0, 'z': 3.0, 'time': 0 }
+    kinetics.imu.read_accel_filtered = mock_accleration
+    def mock_altitude():
+        return 100
+    kinetics.altimeter.read = mock_altitude
+
+    kinetics.run()
+    def mock_accleration():
+        return { 'x': 1.0, 'y': 2.0, 'z': 3.0, 'time': 1 }
+    kinetics.imu.read_accel_filtered = mock_accleration
+    def mock_altitude():
+        return 110
+    kinetics.altimeter.read = mock_altitude
+
+    kinetics.run()
+    assert { 'x': 1.0, 'y': 2.0, 'z': 6.5 } == kinetics.acceleration()

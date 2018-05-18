@@ -9,9 +9,12 @@ WINDOW_SIZE = 50
 class Kinetics(Thread):
     def __init__(self, device_factory):
         self.imu = device_factory.imu
+        self.altimeter = device_factory.altimeter
 
         self.time_series = deque(np.arange(WINDOW_SIZE), maxlen=WINDOW_SIZE)
+        self.current_altitude = self.altimeter.read()
 
+        self.orientation_window = TimeWindow()
         self.acceleration_window = TimeWindow()
         self.velocity_window = TimeWindow()
         self.position_window = TimeWindow()
@@ -44,21 +47,29 @@ class Kinetics(Thread):
     def position(self):
         return self.position_window.last()
 
+    def altitude(self):
+        return self.current_altitude
+
     def compute_brakes_percentage(self):
         return 1.0
 
     def run(self):
         while self.active:
-            measurement = self.imu.read_accel_filtered()
-            self.time_series.append(measurement['time'])
-            self.acceleration_window.append(x=measurement['x'], y=measurement['y'], z=measurement['z'])
+            orientation = self.imu.read_orientation_euler()
+            acceleration = self.imu.read_accel_filtered()
+            altitude = self.altimeter.read()
+
+            self.time_series.append(acceleration['time'])
+            self.acceleration_window.append(x=acceleration['x'], y=acceleration['y'], z=acceleration['z'])
+            self.orientation_window.append(x=orientation['x'], y=acceleration['y'], z=orientation['z'])
 
             prev_velocity = self.velocity_window.last()
             delta_velocity = self.acceleration_window.integrate_last(self.time_series[-2], self.time_series[-1])
+            delta_altitude = (self.altitude - self.current_altitude) / (self.time_series[-1] - self.time_series[-2])
             self.velocity_window.append(
                 x=prev_velocity['x'] + delta_velocity[0],
                 y=prev_velocity['y'] + delta_velocity[1],
-                z=prev_velocity['z'] + delta_velocity[2])
+                z=(prev_velocity['z'] + delta_velocity[2] + delta_altitude) / 2 )
 
 
             prev_position = self.position_window.last()
@@ -66,7 +77,9 @@ class Kinetics(Thread):
             self.position_window.append(
                 x=prev_position['x'] + delta_position[0],
                 y=prev_position['y'] + delta_position[1],
-                z=prev_position['z'] + delta_position[2])
+                z=(prev_position['z'] + delta_position[2] + altitude) / 2 )
+
+            self.current_altitude = altitude
 
             acceleration = self.acceleration()
             logging.debug("Acceleration x: {}, y: {}, z: {}".format(acceleration['x'], acceleration['y'], acceleration['z']))
