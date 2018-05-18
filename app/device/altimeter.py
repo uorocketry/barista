@@ -10,6 +10,7 @@ OUT_P_MSB = 0x01
 OUT_T_MSB = 0x04
 CTRL_REG1 = 0x26
 OFF_H = 0x2D
+PT_DATA_CFG = 0x13
 
 
 class Altimeter(object):
@@ -21,13 +22,15 @@ class Altimeter(object):
         self.bus.write_byte(PT_DATA_CFG, 0x07)
 
         self.bus.write_byte(CTRL_REG1, 0xB9) #activate polling
-        offset_height = 101000 ## Ottawa
+        offset_height = 70 ## Ottawa altitude: 70 m, Las Cruses altitude: 1,189 m
+        offset_height = np.binary_repr(-offset_height, width = 8)
+        offset_height = int(offset_height, 2)
         self.bus.write_byte(OFF_H, offset_height)
 
-        status = self.bus.read_byte(STATUS_REG)
+        status = self.read_byte(STATUS_REG)
 
         while (status & 0x08) == False:
-            self.bus.read_byte(STATUS_REG)
+            self.read_byte(STATUS_REG)
 
     def read_altitude(self):
         raw_data = self.bus.read_block(OUT_P_MSB, 3)
@@ -66,7 +69,7 @@ class Altimeter(object):
         parsed_data = str_msb + str_csb + str_lsb[3] + str_lsb[2] + str_lsb[1] + str_lsb[0]
 
         parsed_altitude = int(parsed_data, 2)
-        parsed_altitude = np.binary_repr(parsed_altitude, width = 20)
+        parsed_altitude = np.binary_repr(-parsed_altitude, width = 20)
         parsed_altitude = int(parsed_altitude, 2)
 
         return parsed_altitude
@@ -79,7 +82,7 @@ class Altimeter(object):
         parsed_data = str_msb + str_lsb[3] + str_lsb[2] + str_lsb[1] + str_lsb[0]
 
         parsed_temp = int(parsed_data, 2)
-        parsed_temp = np.binary_repr(parsed_temp, width = 16)
+        parsed_temp = np.binary_repr(-parsed_temp, width = 16)
         parsed_temp = int(parsed_temp, 2)
 
         return parsed_temp
