@@ -31,27 +31,26 @@ class Altimeter(object):
         return Altimeter.parse_raw_data_altitude(raw_data)
 
     def read_temp(self):
-        raw_data = self.bus.read_block(OUT_P_MSB, 2)
+        raw_data = self.bus.read_block(OUT_T_MSB, 2)
         return Altimeter.parse_raw_data_temp(raw_data)
 
+## TODO: change for New Mexico
+    def read_bar_setting(self):
+        setting = self.bus.read_block(BAR_IN_MSB, 2)
+        try:
+            return parse_raw_data(setting)*2
+        except Exception as e:
+            logging.error('error: %s, raw_data: %s', e, raw_data)
+            return(-1)
 
-##//MAYBE
-    # def read_bar_setting(self):
-    #     setting = self.bus.read_block(BAR_IN_MSB, 2)
-    #     try:
-    #         return parse_raw_data(setting)*2
-    #     except Exception as e:
-    #         logging.error('error: %s, raw_data: %s', e, raw_data)
-    #         return(-1)
-    #
-    # #Parameter is bar setting/2
-    # def write_bar_setting(self, input):
-    #     if input < 0 or input > 131071:
-    #         raise ValueError('Input out of acceptable bounds.')
-    #     else:
-    #         self.bus.write_block(BAR_IN_MSB, int(input))
-    #         setting = read_bar_setting()
-##MAYBE
+    #Parameter is bar setting/2
+    def write_bar_setting(self, input):
+        if input < 0 or input > 131071: ## TODO: change value for New Mexico
+            raise ValueError('Input out of acceptable bounds.')
+        else:
+            self.bus.write_block(BAR_IN_MSB, int(input))
+            read_bar_setting()
+## //
 
     @staticmethod
     def parse_raw_data_altitude(raw_data):
@@ -61,19 +60,24 @@ class Altimeter(object):
         str_lsb = '{0:08b}'.format(raw_data[2])
 
         parsed_data = str_msb + str_csb
-        parsed_data_fractions = str_lsb[4] + str_lsb[5] + str_lsb[6] + str_lsb[7]
+        parsed_data_fractions = str_lsb[0] + str_lsb[1] + str_lsb[2] + str_lsb[3]
 
         parsed_altitude = int(parsed_data, 2)
         if str_msb[0] == '1':
-            parsed_altitude = np.binary_repr(-1*parsed_altitude, width = 15)
-            parsed_altitude = int(parsed_data, 2)
+            parsed_altitude = np.binary_repr(-parsed_altitude, width = 16)
+            parsed_altitude = parsed_altitude[-16:]
+            parsed_altitude = int(parsed_altitude, 2)
 
-        parsed_altitude_fractions = int(parsed_data_fractions, 2)/16
+        parsed_altitude_fractions = int(parsed_data_fractions, 2)
         if str_lsb[4] == '1':
-            parsed_altitude_fractions = -1*parsed_altitude_fractions
+            parsed_altitude_fractions = np.binary_repr(-parsed_altitude_fractions, width = 4)
+            parsed_altitude_fractions = parsed_altitude_fractions[-4:]
+            parsed_altitude_fractions = int(parsed_altitude_fractions, 2)
+
+        parsed_altitude_fractions = float(parsed_altitude_fractions)/16
 
         final_altitude = parsed_altitude + parsed_altitude_fractions
-        return final_altitude
+        return final_altitude # meters
 
     def parse_raw_data_temp(raw_data):
 
@@ -81,16 +85,21 @@ class Altimeter(object):
         str_lsb = '{0:08b}'.format(raw_data[1])
 
         parsed_data = str_msb
-        parsed_data_fractions = str_lsb[4] + str_lsb[5] + str_lsb[6] + str_lsb[7]
+        parsed_data_fractions = str_lsb[0] + str_lsb[1] + str_lsb[2] + str_lsb[3]
 
         parsed_temp = int(parsed_data, 2)
         if str_msb[0] == '1':
-            parsed_altitude = np.binary_repr(-1*parsed_altitude, width = 13)
-            parsed_altitude = int(parsed_data, 2)
+            parsed_temp = np.binary_repr(-parsed_temp, width = 8)
+            parsed_temp = parsed_temp[-8:]
+            parsed_temp = int(parsed_temp, 2)
 
-        parsed_temp_fractions = int(parsed_temp_fractions, 2)/16
+        parsed_temp_fractions = int(parsed_data_fractions, 2)
         if str_lsb[4] == '1':
-            parsed_temp_fractions =  -1*parsed_temp_fractions
+            parsed_temp_fractions = np.binary_repr(-parsed_temp_fractions, width = 4)
+            parsed_temp_fractions = parsed_temp_fractions[-4:]
+            parsed_temp_fractions = int(parsed_temp_fractions, 2)
+
+        parsed_temp_fractions = float(parsed_temp_fractions)/16
 
         final_temp = parsed_temp + parsed_temp_fractions
-        return final_temp
+        return final_temp # degrees C
