@@ -11,6 +11,7 @@ OUT_T_MSB = 0x04
 CTRL_REG1 = 0x26
 OFF_H = 0x2D
 PT_DATA_CFG = 0x13
+BAR_IN_MSB = 0xC5
 
 
 class Altimeter(object):
