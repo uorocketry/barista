@@ -11,7 +11,8 @@ OUT_T_MSB = 0x04
 CTRL_REG1 = 0x26
 OFF_H = 0x2D
 PT_DATA_CFG = 0x13
-BAR_IN_MSB = 0xC5
+BAR_IN_MSB = 0x14
+BAR_IN_LSB = 0x15
 
 
 class Altimeter(object):
@@ -35,22 +36,34 @@ class Altimeter(object):
         raw_data = self.bus.read_block(OUT_T_MSB, 2)
         return Altimeter.parse_raw_data_temp(raw_data)
 
+    def reset_bar_input(self): ## TODO: Temp code
+        self.bus.write_byte(0x14, 0xC5)
+        self.bus.write_byte(0x15, 0xE7)
+
 ## TODO: change for New Mexico
-    def read_bar_setting(self):
-        setting = self.bus.read_block(BAR_IN_MSB, 2)
-        try:
-            return parse_raw_data(setting)*2
-        except Exception as e:
-            logging.error('error: %s, raw_data: %s', e, raw_data)
-            return(-1)
+    # def read_bar_setting(self):
+    #     setting = self.bus.read_block(BAR_IN_MSB, 2)
+    #     try:
+    #         return parse_raw_data(setting)*2
+    #     except Exception as e:
+    #         logging.error('error: %s, raw_data: %s', e, raw_data)
+    #         return(-1)
 
     #Parameter is bar setting/2
     def write_bar_setting(self, input):
+
         if input < 0 or input > 131071: ## TODO: change value for New Mexico
             raise ValueError('Input out of acceptable bounds.')
         else:
-            self.bus.write_block(BAR_IN_MSB, int(input))
-            read_bar_setting()
+            equiv_pressure = 101950 # Ottawa
+            equiv_pressure = np.binary_repr(equiv_pressure, width = 16)
+            equiv_pressure = equiv_pressure[-16:]
+            equiv_pressure_msb = equiv_pressure[0:8]
+            equiv_pressure_lsb = equiv_pressure[8:]
+
+            self.bus.write_block(BAR_IN_MSB, equiv_pressure_msb)
+            self.bus.write_block(BAR_IN_LSB, equiv_pressure_lsb)
+            # read_bar_setting()
 ## //
 
     @staticmethod
@@ -64,16 +77,16 @@ class Altimeter(object):
         parsed_data_fractions = str_lsb[0] + str_lsb[1] + str_lsb[2] + str_lsb[3]
 
         parsed_altitude = int(parsed_data, 2)
+        parsed_altitude_fractions = int(parsed_data_fractions, 2)
+
         if str_msb[0] == '1':
             parsed_altitude = np.binary_repr(-parsed_altitude, width = 16)
             parsed_altitude = parsed_altitude[-16:]
-            parsed_altitude = int(parsed_altitude, 2)
+            parsed_altitude = -1*int(parsed_altitude, 2)
 
-        parsed_altitude_fractions = int(parsed_data_fractions, 2)
-        if str_lsb[4] == '1':
             parsed_altitude_fractions = np.binary_repr(-parsed_altitude_fractions, width = 4)
             parsed_altitude_fractions = parsed_altitude_fractions[-4:]
-            parsed_altitude_fractions = int(parsed_altitude_fractions, 2)
+            parsed_altitude_fractions = -1*int(parsed_altitude_fractions, 2)
 
         parsed_altitude_fractions = float(parsed_altitude_fractions)/16
 
@@ -89,16 +102,16 @@ class Altimeter(object):
         parsed_data_fractions = str_lsb[0] + str_lsb[1] + str_lsb[2] + str_lsb[3]
 
         parsed_temp = int(parsed_data, 2)
+        parsed_temp_fractions = int(parsed_data_fractions, 2)
+
         if str_msb[0] == '1':
             parsed_temp = np.binary_repr(-parsed_temp, width = 8)
             parsed_temp = parsed_temp[-8:]
-            parsed_temp = int(parsed_temp, 2)
+            parsed_temp = -1*int(parsed_temp, 2)
 
-        parsed_temp_fractions = int(parsed_data_fractions, 2)
-        if str_lsb[4] == '1':
             parsed_temp_fractions = np.binary_repr(-parsed_temp_fractions, width = 4)
             parsed_temp_fractions = parsed_temp_fractions[-4:]
-            parsed_temp_fractions = int(parsed_temp_fractions, 2)
+            parsed_temp_fractions = -1*int(parsed_temp_fractions, 2)
 
         parsed_temp_fractions = float(parsed_temp_fractions)/16
 
