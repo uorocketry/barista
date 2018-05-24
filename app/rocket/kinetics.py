@@ -33,6 +33,12 @@ class Kinetics(Thread):
                 raise Exception('Failed to deactivate Kinetics Model')
 
     def predicted_apogee(self):
+        g = -9.81
+        m = 20
+        rho =
+        b = (1/2)*rho*area*drag_cofficient
+        n = np.sqrt(b/m*g)
+        t - t_apogee = (-1/g*n)(np.arctan(n*velocity)-np.arctan(n*burnout_velocity))
         return 0
 
     def acceleration(self):
