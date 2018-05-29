@@ -33,13 +33,19 @@ class Kinetics(Thread):
                 raise Exception('Failed to deactivate Kinetics Model')
 
     def predicted_apogee(self):
-        g = -9.81
-        m = 20
-        rho =
-        b = (1/2)*rho*area*drag_cofficient
+        #g = -9.81 # gravity
+        g = self.acceleration()
+        m = 20 # rocket mass
+        rho = 2 # mass density of fluid
+        b = (1/2)*rho*self.get_rocket_area()*self.drag_cofficient()
         n = np.sqrt(b/m*g)
-        t - t_apogee = (-1/g*n)(np.arctan(n*velocity)-np.arctan(n*burnout_velocity))
-        return 0
+        t_burnout = 0
+
+        t_apogee = t_burnout + (-1/g*n)(np.arctan(n*self.velocity())-np.arctan(n*burnout_velocity))
+
+        p_apogee = p_burnout - (1/((g**2)*(n**2)))*ln(np.cos(g*n*(t_apogee-t_burnout)+c))
+
+        return p_apogee
 
     def acceleration(self):
         return self.acceleration_window.last()
@@ -52,6 +58,18 @@ class Kinetics(Thread):
 
     def compute_brakes_percentage(self):
         return 1.0
+
+    def drag_cofficient(self):
+        return 1.0
+
+    def compute_area(self):
+        return 1.0
+
+    def dict_to_matrix(self, dict):
+        return np.array([[dict['x']],
+                         [dict['y']],
+                         [dict['z']]])
+
 
     def run(self):
         while self.active:

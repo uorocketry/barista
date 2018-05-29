@@ -1,6 +1,6 @@
 import pytest
 import time
-import numpy
+import numpy as np
 from app.rocket.kinetics import Kinetics
 
 from test.fixtures.dummy_device_factory import DummyDeviceFactory
@@ -33,3 +33,10 @@ def test_start_asynchonously_updates_position(kinetics):
     final_position = kinetics.position()
     kinetics.deactivate()
     assert initial_position != final_position
+
+def test_matrix_conversion(kinetics):
+    dict = {'x': 1, 'y': 2, 'z': 3 }
+    matrix = kinetics.dict_to_matrix(dict)
+    assert matrix is np.array([[1],
+                               [2],
+                               [3]])
