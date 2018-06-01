@@ -37,6 +37,10 @@ def test_start_asynchonously_updates_position(kinetics):
 def test_matrix_conversion(kinetics):
     dict = {'x': 1, 'y': 2, 'z': 3 }
     matrix = kinetics.dict_to_matrix(dict)
-    assert matrix is np.array([[1],
-                               [2],
-                               [3]])
+    assert np.array_equal(matrix, np.array([[1],
+                                            [2],
+                                            [3]]))
+
+def test_apogee_prediction(kinetics):
+    # TODO: this^
+    pass

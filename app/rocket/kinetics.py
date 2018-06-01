@@ -33,17 +33,23 @@ class Kinetics(Thread):
                 raise Exception('Failed to deactivate Kinetics Model')
 
     def predicted_apogee(self):
-        #g = -9.81 # gravity
-        g = self.acceleration()
-        m = 20 # rocket mass
+        accel = self.dict_to_matrix(self.acceleration())
+        m = 20 # empty rocket mass
+        accel_force = m*accel
+
+        c = self.drag_cofficient()
+        area = self.compute_area()
         rho = 2 # mass density of fluid
-        b = (1/2)*rho*self.get_rocket_area()*self.drag_cofficient()
-        n = np.sqrt(b/m*g)
-        t_burnout = 0
+        b = (1/2)*rho*area*c # nice variable to work with
+        velocity = self.dict_to_matrix(self.velocity())
+        drag_force = -1*b*np.square(velocity)
 
-        t_apogee = t_burnout + (-1/g*n)(np.arctan(n*self.velocity())-np.arctan(n*burnout_velocity))
+        n = np.sqrt(b/accel_force) # another nice variable
 
-        p_apogee = p_burnout - (1/((g**2)*(n**2)))*ln(np.cos(g*n*(t_apogee-t_burnout)+c))
+        p_burnout = self.position() # TODO: make this return the position at start of TimeWindow
+        v_burnout = self.velocity() # TODO: make this return the velocity at start of TimeWindow
+
+        p_apogee = p_burnout - dot((1/((np.square(accel))*(np.sqare(n)))),np.ln(np.cos(np.arctan(2*np.dot(n,v_burnout)))))
 
         return p_apogee
 
@@ -69,7 +75,6 @@ class Kinetics(Thread):
         return np.array([[dict['x']],
                          [dict['y']],
                          [dict['z']]])
-
 
     def run(self):
         while self.active:
