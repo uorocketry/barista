@@ -6,6 +6,7 @@ import logging
 
 WINDOW_SIZE = 50
 
+
 class Kinetics(Thread):
     def __init__(self, device_factory):
         self.imu = device_factory.imu
@@ -34,22 +35,22 @@ class Kinetics(Thread):
 
     def predicted_apogee(self):
         accel = self.dict_to_matrix(self.acceleration())
-        m = 20 # empty rocket mass
+        m = 20  # empty rocket mass
         accel_force = m*accel
 
         c = self.drag_cofficient()
         area = self.compute_area()
-        rho = 2 # mass density of fluid
-        b = (1/2)*rho*area*c # nice variable to work with
+        rho = 2  # mass density of fluid
+        b = (1/2)*rho*area*c  # nice variable to work with
         velocity = self.dict_to_matrix(self.velocity())
-        drag_force = -1*b*np.square(velocity)
+        try:
+            drag_force = -1*b*np.square(velocity)
 
-        n = np.sqrt(b/accel_force) # another nice variable
+        n = np.sqrt(b/accel_force)  # another nice variable
+        p_burnout = self.position()  # TODO: make this return the position at start of TimeWindow
+        v_burnout = self.velocity()  # TODO: make this return the velocity at start of TimeWindow
 
-        p_burnout = self.position() # TODO: make this return the position at start of TimeWindow
-        v_burnout = self.velocity() # TODO: make this return the velocity at start of TimeWindow
-
-        p_apogee = p_burnout - dot((1/((np.square(accel))*(np.sqare(n)))),np.ln(np.cos(np.arctan(2*np.dot(n,v_burnout)))))
+        p_apogee = p_burnout - np.dot((1/((np.square(accel))*(np.square(n)))), np.log(np.cos(np.arctan(2*np.dot(n, v_burnout)))))
 
         return p_apogee
 
@@ -89,7 +90,6 @@ class Kinetics(Thread):
                 y=prev_velocity['y'] + delta_velocity[1],
                 z=prev_velocity['z'] + delta_velocity[2])
 
-
             prev_position = self.position_window.last()
             delta_position = self.velocity_window.integrate_last(self.time_series[-2], self.time_series[-1])
             self.position_window.append(
@@ -103,6 +103,7 @@ class Kinetics(Thread):
             logging.debug("Velocity x: {}, y: {}, z: {}".format(velocity['x'], velocity['y'], velocity['z']))
             position = self.position()
             logging.debug("Position x: {}, y: {}, z: {}".format(position['x'], position['y'], position['z']))
+
 
 class TimeWindow(object):
     def __init__(self, size=WINDOW_SIZE):
@@ -124,6 +125,6 @@ class TimeWindow(object):
 
     def last(self, count=1):
         if count == 1:
-            return {'x': self.x[-1], 'y': self.y[-1], 'z': self.z[-1] }
+            return {'x': self.x[-1], 'y': self.y[-1], 'z': self.z[-1]}
         else:
-            return {'x': self.x[-1:-1*count], 'y': self.y[-1:-1*count], 'z': self.z[-1:-1*count] }
+            return {'x': self.x[-1:-1*count], 'y': self.y[-1:-1*count], 'z': self.z[-1:-1*count]}

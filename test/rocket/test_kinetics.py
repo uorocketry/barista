@@ -5,10 +5,12 @@ from app.rocket.kinetics import Kinetics
 
 from test.fixtures.dummy_device_factory import DummyDeviceFactory
 
+
 @pytest.fixture
 def kinetics():
     device_factory = DummyDeviceFactory()
     return Kinetics(DummyDeviceFactory())
+
 
 def test_start_asynchonously_updates_acceleration(kinetics):
     kinetics.activate()
@@ -18,6 +20,7 @@ def test_start_asynchonously_updates_acceleration(kinetics):
     kinetics.deactivate()
     assert initial_acceleration != final_acceleration
 
+
 def test_start_asynchonously_updates_velocity(kinetics):
     kinetics.activate()
     initial_velocity = kinetics.velocity()
@@ -25,6 +28,7 @@ def test_start_asynchonously_updates_velocity(kinetics):
     final_velocity = kinetics.velocity()
     kinetics.deactivate()
     assert initial_velocity != final_velocity
+
 
 def test_start_asynchonously_updates_position(kinetics):
     kinetics.activate()
@@ -41,6 +45,5 @@ def test_matrix_conversion(kinetics):
                                             [2],
                                             [3]]))
 
-def test_apogee_prediction(kinetics):
-    # TODO: this^
-    pass
+def test_apogee_prediction_zero_acceleration(kinetics):
+    kinetics.predicted_apogee() # TODO: finish me
