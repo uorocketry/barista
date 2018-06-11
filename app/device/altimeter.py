@@ -35,29 +35,28 @@ class Altimeter(object):
         raw_data = self.bus.read_block(OUT_T_MSB, 2)
         return Altimeter.parse_raw_data(raw_data)
 
-    def reset_bar_input(self): ## TODO: Temp code
+    def reset_bar_input(self):
         self.bus.write_byte(0x14, 0xC5)
         self.bus.write_byte(0x15, 0xE7)
 
-                                                                   ## TODO: change for New Mexico
     def read_bar_setting(self):
     setting = self.bus.read_block(BAR_IN_MSB, 2)
     
-    try:
-        str_msb = '{0:08b}'.format(setting[0])
-        str_lsb = '{0:08b}'.format(setting[1])
-        parsed_setting = str_msb + str_lsb
-        parsed_setting = int(parsed_setting, 2)*2 #Parameter is bar setting/2
-        return parsed_setting
-    except Exception as e:
-        return False
+        try:
+            str_msb = '{0:08b}'.format(setting[0])
+            str_lsb = '{0:08b}'.format(setting[1])
+            parsed_setting = str_msb + str_lsb
+            parsed_setting = int(parsed_setting, 2) *2 #Parameter is bar setting/2
+            return parsed_setting
+        except Exception as e:
+            return False
 
     def write_bar_setting(self, input):
         #Parameter is bar setting/2
         if input < 0 or input > 131071:
-            raise ValueError('Input out of acceptable bounds.')
+            raise ValueError('ERROR: Input out of acceptable bounds.')
         else:
-            equiv_pressure = 101950/2                                         ## Ottawa
+            equiv_pressure = input/2             ## 101950 for Ottawa, 109975 for Las Cruces
             equiv_pressure = np.binary_repr(equiv_pressure, width = 16)
             equiv_pressure = equiv_pressure[-16:]
             equiv_pressure_msb = int(equiv_pressure[0:8], 2)
