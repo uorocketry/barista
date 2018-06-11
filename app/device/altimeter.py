@@ -1,6 +1,5 @@
 from app.utils.i2c import I2C
 from time import sleep
-import logging
 import numpy as np
 
 
@@ -40,22 +39,25 @@ class Altimeter(object):
         self.bus.write_byte(0x14, 0xC5)
         self.bus.write_byte(0x15, 0xE7)
 
-## TODO: change for New Mexico
-    # def read_bar_setting(self):
-    #     setting = self.bus.read_block(BAR_IN_MSB, 2)
-    #     try:
-    #         return parse_raw_data(setting, False)*2
-    #     except Exception as e:
-    #         logging.error('error: %s, raw_data: %s', e, raw_data)
-    #         return(-1)
+                                                                   ## TODO: change for New Mexico
+    def read_bar_setting(self):
+    setting = self.bus.read_block(BAR_IN_MSB, 2)
+    
+    try:
+        str_msb = '{0:08b}'.format(setting[0])
+        str_lsb = '{0:08b}'.format(setting[1])
+        parsed_setting = str_msb + str_lsb
+        parsed_setting = int(parsed_setting, 2)*2 #Parameter is bar setting/2
+        return parsed_setting
+    except Exception as e:
+        return False
 
-    #Parameter is bar setting/2
     def write_bar_setting(self, input):
-
-        if input < 0 or input > 131071: ## TODO: change value for New Mexico
+        #Parameter is bar setting/2
+        if input < 0 or input > 131071:
             raise ValueError('Input out of acceptable bounds.')
         else:
-            equiv_pressure = 101950/2 # Ottawa
+            equiv_pressure = 101950/2                                         ## Ottawa
             equiv_pressure = np.binary_repr(equiv_pressure, width = 16)
             equiv_pressure = equiv_pressure[-16:]
             equiv_pressure_msb = int(equiv_pressure[0:8], 2)
@@ -63,11 +65,9 @@ class Altimeter(object):
 
             self.bus.write_byte(BAR_IN_MSB, equiv_pressure_msb)
             self.bus.write_byte(BAR_IN_LSB, equiv_pressure_lsb)
-            # read_bar_setting()
-## //
 
     @staticmethod
-    def parse_raw_data(raw_data, twos_comp = True):
+    def parse_raw_data(raw_data):
         if len(raw_data) == 3:
             str_msb = '{0:08b}'.format(raw_data[0])
             str_csb = '{0:08b}'.format(raw_data[1])
@@ -87,7 +87,7 @@ class Altimeter(object):
         data = int(parsed_data, 2)
         data_fractions = int(data_fractions, 2)
 
-        if (str_msb[0] == '1' and twos_comp == True):
+        if str_msb[0] == '1':
             data = np.binary_repr(-data, width = str_length)
             data = data[-str_length:]
             data = -1*int(data, 2)
