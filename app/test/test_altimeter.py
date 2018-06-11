@@ -1,7 +1,7 @@
 import pytest
 import time
 
-from from app.device import Altimeter
+from app.device import Altimeter
 from test.fixtures.dummy_device_factory import DummyDeviceFactory
 
 Altimeter = Altimeter()
