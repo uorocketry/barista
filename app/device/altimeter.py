@@ -40,16 +40,13 @@ class Altimeter(object):
         self.bus.write_byte(0x15, 0xE7)
 
     def read_bar_setting(self):
-    setting = self.bus.read_block(BAR_IN_MSB, 2)
+        setting = self.bus.read_block(BAR_IN_MSB, 2)
     
-        try:
-            str_msb = '{0:08b}'.format(setting[0])
-            str_lsb = '{0:08b}'.format(setting[1])
-            parsed_setting = str_msb + str_lsb
-            parsed_setting = int(parsed_setting, 2) *2 #Parameter is bar setting/2
-            return parsed_setting
-        except Exception as e:
-            return False
+        str_msb = '{0:08b}'.format(setting[0])
+        str_lsb = '{0:08b}'.format(setting[1])
+        parsed_setting = str_msb + str_lsb
+        parsed_setting = int(parsed_setting, 2) *2 #Parameter is bar setting/2
+        return parsed_setting
 
     def write_bar_setting(self, input):
         #Parameter is bar setting/2
