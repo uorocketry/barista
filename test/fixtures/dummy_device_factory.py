@@ -1,16 +1,20 @@
-import time
+from time import time
 import random
 import logging
 
+<<<<<<< HEAD
 class DummyAltimeter(object):
     def read(self):
         return round(random.uniform(-100,10000),1)
 
 class DummyAccelerometer(object):
+=======
+class DummyIMU(object):
+>>>>>>> master
     def __init__(self):
         self.sleeping = False
 
-    def read(self):
+    def read_accel_filtered(self):
         if self.sleeping:
             return {
                 'x': 0.0,
@@ -25,6 +29,60 @@ class DummyAccelerometer(object):
                 'z': round(random.uniform(-10,10),4),
                 'time': time()
             }
+
+    def sleep(self):
+        self.sleeping = True
+
+    def wake(self):
+        self.sleeping = False
+
+
+class DummyAltimeter(object):
+    def __init__(self):
+        self.sleeping = False
+        self.bar_setting = 1.019
+
+    def read(self):
+        return round(random.uniform(-100,2000),4),
+
+    def get_bar_setting(self):
+        return self.bar_setting
+
+    def set_bar_setting(self, bar_setting):
+        self.bar_setting = bar_setting
+
+    def sleep(self):
+        self.sleeping = True
+
+    def wake(self):
+        self.sleeping = False
+
+
+class DummyRadio(object):
+    ACTION_WAKE='wake'
+    ACTION_SLEEP='sleep'
+    ACTION_LAUNCH='launch'
+    ACTION_TEST_BRAKES='test_brakes'
+    ACTION_CONNECTING='connecting'
+    ACTION_POSITION_REPORT='position_report'
+
+    def __init__(self):
+        self.sleeping = False
+        self.action = None
+        self.data = None
+
+    def receive(self):
+        data = { 'action': str(self.action), 'data': self.data }
+        self.data = None
+        self.action = None
+        return data
+
+    def transmit(self, action, data=None):
+        logging.info("Radio transmit: action: {} data: {}".format(action, data))
+
+    def mock_message(self, action, data):
+        self.action = action
+        self.data = data
 
     def sleep(self):
         self.sleeping = True
@@ -49,27 +107,6 @@ class DummyGPS(object):
             'ground_speed': 11.514
         }
 
-
-class DummyGyro(object):
-    def __init__(self):
-        self.sleeping = False
-
-    def read(self):
-        if self.sleeping:
-            return {
-                'pitch': 0.0,
-                'roll': 0.0,
-                'yaw': 0.0,
-                'time':time()
-            }
-        else:
-            return {
-                'pitch': round(random.uniform(0,360),4),
-                'roll': round(random.uniform(0,360),4),
-                'yaw': round(random.uniform(0,360),4),
-                'time': time()
-            }
-
     def sleep(self):
         self.sleeping = True
 
@@ -79,27 +116,47 @@ class DummyGyro(object):
 
 class DummyParachute(object):
     def __init__(self):
-        self.logger = logging.getLogger()
+        self.deployed_stage_one = False
+        self.deployed_stage_two = False
 
     def deploy_stage_one(self):
-        self.logger.info('Deployed Stage One')
+        logging.info('Deployed Stage One')
+        self.deployed_stage_one = True
 
     def deploy_stage_two(self):
-        self.logger.info('Deployed Stage Two')
-
+        logging.info('Deployed Stage Two')
+        self.deployed_stage_two = True
 
 class DummyBrakes(object):
     def __init__(self):
-        self.logger = logging.getLogger()
+        self.percentage = 0.0
 
     def deploy(self, percentage):
-        self.logger.info('Deployed Barkes %f%', percentage)
-
+        logging.info("Deployed Brakes: {}".format(str(percentage)))
+        self.percentage = percentage
 
 class DummyDeviceFactory(object):
     def __init__(self):
+<<<<<<< HEAD
         self.altimeter = DummyAltimeter()
         self.accelerometer = DummyAccelerometer()
+=======
+        self.imu = DummyIMU()
+        self.altimeter = DummyAltimeter()
+>>>>>>> master
         self.gps = DummyGPS()
-        self.gyro = DummyGyro()
         self.parachute = DummyParachute()
+        self.brakes = DummyBrakes()
+        self.radio = DummyRadio()
+
+    def sleep_all(self):
+        self.imu.sleep()
+        self.altimeter.sleep()
+        self.gps.sleep()
+        self.radio.sleep()
+
+    def wake_all(self):
+        self.imu.wake()
+        self.altimeter.wake()
+        self.gps.wake()
+        self.radio.wake()

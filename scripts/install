@@ -1,0 +1,29 @@
+#!/bin/bash
+set -euo pipefail
+
+set_sudo_all() {
+  echo "username ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers
+}
+
+set_production_env() {
+  if [ -z "ROCKET_PRODUCTION" ]; then
+    echo "ROCKET_PRODUCTION=True" > /etc/enviroment
+    set_sudo_all()
+  fi
+}
+
+set_start_on_boot() {
+  echo "~/barista/scripts/start" > /etc/init.d/rocket
+}
+
+main() {
+  case "${1:--}" in
+    production)
+      (set_production_env())
+      (set_start_on_boot())
+    ;;
+  esac
+  sudo pip install -r requirements.txt
+}
+
+main "$@"

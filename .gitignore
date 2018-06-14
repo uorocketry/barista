@@ -1,8 +1,10 @@
+*.log
 .DS_store
 *.pyc
 *.cache
 *__pycache__/
 *.save
 *.pytest_cache
-
 *.ipynb-checkpoints/
+*.vs
+*.log

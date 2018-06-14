@@ -41,7 +41,7 @@ class Altimeter(object):
 
     def read_bar_setting(self):
         setting = self.bus.read_block(BAR_IN_MSB, 2)
-    
+
         str_msb = '{0:08b}'.format(setting[0])
         str_lsb = '{0:08b}'.format(setting[1])
         parsed_setting = str_msb + str_lsb
