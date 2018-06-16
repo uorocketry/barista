@@ -163,6 +163,26 @@ def test_continue_in_ground_if_acceleration_below_threshold(rocket):
 
     assert rocket.state == 'ground'
 
+def test_coast_fires_deploy_main_after_21_seconds(rocket):
+    rocket.state_machine.set_state('coast')
+    def mock_kinetics_acceleration():
+        return { 'x': 0.0, 'y': 0.0, 'z': 0.2 }
+    rocket.kinetics.acceleration = mock_kinetics_acceleration
+    def mock_kinetics_velocity():
+        return { 'x': 3.0, 'y': 2.0, 'z': 10.0 }
+    rocket.kinetics.velocity = mock_kinetics_velocity
+    def mock_altimeter_read():
+        return 10000 #feet
+    rocket.device_factory.altimeter.read = mock_altimeter_read
+
+    rocket.activate()
+    assert rocket.state == 'coast'
+
+    time.sleep(21)
+
+    assert rocket.state == 'descent_drogue'
+    rocket.deactivate()
+
 def test_powered_transitions_to_coast_if_acceleration_falls_below_threshold(rocket):
     rocket.state_machine.set_state('powered')
     def mock_kinetics_acceleration():

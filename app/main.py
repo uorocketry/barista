@@ -13,7 +13,7 @@ class Rocket(Thread):
         State(name='connecting',     on_enter=['enter_state']),
         State(name='sleep',          on_enter=['enter_state', 'enter_sleep'], on_exit='exit_sleep'),
         State(name='ground',         on_enter=['enter_state']),
-        State(name='powered',        on_enter=['enter_state']),
+        State(name='powered',        on_enter=['enter_state', 'enter_powered']),
         State(name='coast',          on_enter=['enter_state']),
         State(name='descent_drogue', on_enter=['enter_state', 'on_enter_decent_drogue']),
         State(name='descent_main',   on_enter=['enter_state', 'on_enter_descent_main'])
@@ -22,7 +22,7 @@ class Rocket(Thread):
         { 'trigger': 'connected', 'source': 'connecting', 'dest': 'ground' },
         { 'trigger': 'launch', 'source': 'ground', 'dest': 'powered' },
         { 'trigger': 'burnout', 'source': 'powered', 'dest': 'coast' },
-        { 'trigger': 'deploy_drogue', 'source': 'coast', 'dest': 'descent_drogue' },
+        { 'trigger': 'deploy_drogue', 'source': ['powered', 'coast'], 'dest': 'descent_drogue' },
         { 'trigger': 'deploy_main', 'source': 'descent_drogue', 'dest': 'descent_main' },
         { 'trigger': 'touchdown', 'source': 'descent_main', 'dest': 'ground' },
         { 'trigger': 'sleep', 'source': 'ground', 'dest': 'sleep' },
@@ -126,8 +126,9 @@ class Rocket(Thread):
 
     def during_coast(self):
         APOGEE_VELOCTY_THRESHOLD = 8 # m/s
+        COAST_TIME = 20.5 # s
         self.device_factory.brakes.deploy(self.kinetics.compute_brakes_percentage())
-        if self.kinetics.velocity()['z'] <= APOGEE_VELOCTY_THRESHOLD:
+        if self.kinetics.velocity()['z'] <= APOGEE_VELOCTY_THRESHOLD or time.time() - self.last_state['time'] > COAST_TIME:
             self.deploy_drogue()
             self.device_factory.brakes.deploy(0.0)
 
