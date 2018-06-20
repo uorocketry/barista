@@ -93,8 +93,8 @@ class GPS(object):
         data['altitude (ASL)'] = float(raw_data['GPGGA'][8]) # meters
         data['time (UTC)']= raw_data['GPRMC'][8][0:2] + ':' + raw_data['GPRMC'][0][2:4] + ':' + raw_data['GPRMC'][0][4:6]
 
-        data['latitude (deg)'] = float(raw_data['GPRMC'][2][0:3])
-        data['latitude (min)'] = float(raw_data['GPRMC'][2][3:9])
+        data['latitude (deg)'] = float(raw_data['GPRMC'][2][0:3])/10
+        data['latitude (min)'] = float(raw_data['GPRMC'][2][3:9])/10
         data['latitude (dir)'] = raw_data['GPRMC'][3]
 
         data['longitude (deg)'] = float(raw_data['GPRMC'][4][0:3])
