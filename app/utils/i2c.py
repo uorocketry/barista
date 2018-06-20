@@ -20,7 +20,7 @@ class I2C(object):
         bit_array = np.unpackbits(read_value)
         bit_array[index*-1-1] = 0
         self.smbus.write_byte_data(self.device_address,register, np.packbits(bit_array))
- 
+
 
     def read_bit(self,register, index):
         value = self.smbus.read_byte_data(device_address, register)
@@ -39,11 +39,5 @@ class I2C(object):
     def read_block(self,register, number_to_read):
         return self.smbus.read_i2c_block_data(self.device_address, register, number_to_read)
 
-<<<<<<< HEAD
-
-    def write_block(self,start_register, number_to_write):
-        return self.smbus.write_i2c_block_data(self.device_address, start_register, number_to_write)
-=======
     def byte_array_to_float32(self,array):
         return np.fromiter(array[::-1], dtype=np.uint8).view('<f4')
->>>>>>> master
