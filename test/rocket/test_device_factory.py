@@ -17,7 +17,8 @@ from app.rocket.device_factory import DeviceFactory
 @patch.object(GPS, '__init__')
 @patch.object(Parachute, '__init__')
 @patch.object(Radio, '__init__')
-def test_init_creates_one_of_each_device(imu_mock, altimeter_mock, brakes_mock, gps_mock, parachute_mock, radio_mock):
+def test_init_creates_one_of_each_device(imu_mock, altimeter_mock, brakes_mock,
+                                         gps_mock, parachute_mock, radio_mock):
     imu_mock.return_value = None
     altimeter_mock.return_value = None
     brakes_mock.return_value = None

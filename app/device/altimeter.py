@@ -33,7 +33,7 @@ class Altimeter(object):
 
     def read_altitude(self):
         raw_data = self.bus.read_block(OUT_P_MSB, 3)
-        return (Altimeter.parse_raw_data(raw_data)-self.init_height) # m
+        return (Altimeter.parse_raw_data(raw_data) - self.init_height) # m
 
     def read_temp(self):
         raw_data = self.bus.read_block(OUT_T_MSB, 2)

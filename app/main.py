@@ -10,20 +10,20 @@ from app.rocket.kinetics import Kinetics
 
 class Rocket(object):
     states = [
-        State(name='connecting',     on_enter=['enter_state']),
-        State(name='ground',         on_enter=['enter_state']),
-        State(name='powered',        on_enter=['enter_state']),
-        State(name='coast',          on_enter=['enter_state']),
-        State(name='descent_drogue', on_enter=['enter_state', 'on_enter_decent_drogue']),
-        State(name='descent_main',   on_enter=['enter_state', 'on_enter_descent_main'])
+        State(name='connecting', on_enter=['enter_state']),
+        State(name='ground',     on_enter=['enter_state']),
+        State(name='armed',      on_enter=['enter_state', 'before_arm']),
+        State(name='powered',    on_enter=['enter_state']),
+        State(name='coast',      on_enter=['enter_state']),
+        State(name='descent',    on_enter=['enter_state']),
     ]
     transitions = [
-        { 'trigger': 'connected', 'source': 'connecting', 'dest': 'ground' },
-        { 'trigger': 'launch', 'source': 'ground', 'dest': 'powered' },
-        { 'trigger': 'burnout', 'source': 'powered', 'dest': 'coast' },
-        { 'trigger': 'deploy_drogue', 'source': 'coast', 'dest': 'descent_drogue' },
-        { 'trigger': 'deploy_main', 'source': 'descent_drogue', 'dest': 'descent_main' },
-        { 'trigger': 'touchdown', 'source': 'descent_main', 'dest': 'ground' },
+        { 'trigger': 'connected', 'source': 'connecting',             'dest': 'ground' },
+        { 'trigger': 'arm',       'source': ['ground', 'connecting'], 'dest': 'armed',   'after': 'notify_armed'     },
+        { 'trigger': 'launch',    'source': 'armed',                  'dest': 'powered', 'after': 'notify_launch'    },
+        { 'trigger': 'burnout',   'source': 'powered',                'dest': 'coast',   'after': 'notify_burnout'   },
+        { 'trigger': 'apogee',    'source': 'coast',                  'dest': 'descent', 'after': 'notify_apogee'    },
+        { 'trigger': 'touchdown', 'source': 'descent',                'dest': 'ground',  'after': 'notify_touchdown' },
     ]
 
     def __init__(self, device_factory, log_level=logging.INFO, log_dir='app/logs'):
@@ -46,7 +46,6 @@ class Rocket(object):
         logging.info('Initialized Rocket')
 
         self.kinetics = Kinetics(device_factory)
-        self.kinetics.activate()
         self.device_factory = device_factory
         self.active = False
 
@@ -67,7 +66,12 @@ class Rocket(object):
         self.state_data = {}
 
     def during_connecting(self):
-        RADIO_CONNECTION_TIMEOUT = 15
+        RADIO_AUTOARM = 1498
+        RADIO_CONNECTION_TIMEOUT = 10
+        if time.time() - self.last_state['time'] > RADIO_AUTOARM:
+            logging.info('Auto arming')
+            self.arm()
+
         self.device_factory.radio.transmit(self.device_factory.radio.ACTION_CONNECTING)
         time.sleep(RADIO_CONNECTION_TIMEOUT)
         message = self.device_factory.radio.receive()
@@ -76,57 +80,108 @@ class Rocket(object):
             self.connected()
 
     def during_ground(self):
-        LAUNCH_ACCELERATION_THRESHOLD = 1.5 # m/s^2
         message = self.device_factory.radio.receive()
-        if message['action'] == self.device_factory.radio.ACTION_LAUNCH or self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
-            self.launch()
-        elif message['action'] == self.device_factory.radio.ACTION_SLEEP:
-            self.sleep()
-        elif message['action'] == self.device_factory.radio.ACTION_TEST_BRAKES:
+        if message['action'] == self.device_factory.radio.ACTION_TEST_BRAKES:
             self.device_factory.brakes.sweep()
+        elif message['action'] == self.device_factory.radio.ACTION_ARM:
+            self.arm()
+
+        self.position_report()
+        time.sleep(0.5)
+
+    def before_arm(self):
+        self.device_factory.altimeter.reset_bar_input()
+        self.kinetics.activate()
+
+    def during_armed(self):
+        LAUNCH_ACCELERATION_THRESHOLD = 5 # m/s^2
+        if self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
+            self.launch()
 
     def during_powered(self):
         BURNOUT_ACCELERATION_THRESHOLD = 0.0
         MOTOR_BURN_TIME = 3.0
         if self.kinetics.acceleration()['z'] < BURNOUT_ACCELERATION_THRESHOLD or time.time() - self.last_state['time'] > MOTOR_BURN_TIME:
             self.burnout()
+        self.position_report()
 
     def during_coast(self):
-        APOGEE_VELOCTY_THRESHOLD = 8 # m/s
-        COAST_TIME = 24.5 # s
-        self.device_factory.brakes.deploy(self.kinetics.compute_brakes_percentage())
-        if self.kinetics.velocity()['z'] <= APOGEE_VELOCTY_THRESHOLD or time.time() - self.last_state['time'] > COAST_TIME:
-            self.deploy_drogue()
+        BRAKE_VELOCTY_THRESHOLD = 250 # m/s
+        DESCENT_VELOCITY_THRESHOLD = -4
+        if self.kinetics.velocity()['z'] <= BRAKE_VELOCTY_THRESHOLD:
+            self.device_factory.brakes.deploy(self.kinetics.compute_brakes_percentage())
+        else:
             self.device_factory.brakes.deploy(0.0)
 
-    def on_enter_decent_drogue(self):
-        self.device_factory.parachute.deploy_stage_one()
+        if self.kinetics.vertical_velocity() <= DESCENT_VELOCITY_THRESHOLD:
+            self.device_factory.brakes.deploy(0.0)
+            self.apogee()
 
-    def during_descent_drogue(self):
-        DECENT_DROGUE_TIME = 100 # sec
-        DEPLOY_MAIN_ALTITUDE = 1700 # feet
-        if self.device_factory.altimeter.read_altitude() < DEPLOY_MAIN_ALTITUDE or time.time() - self.last_state['time'] >= DECENT_DROGUE_TIME:
-            self.deploy_main()
+    def during_descent(self):
+        self.position_report()
+        time.sleep(1)
 
-    def on_enter_descent_main(self):
-        self.device_factory.parachute.deploy_stage_two()
-
-    def during_descent_main(self):
-        TOUCHDOWN_VELOCITY_THRESHOLD = 0.0
-        if self.kinetics.velocity()['z'] <= TOUCHDOWN_VELOCITY_THRESHOLD:
-            self.touchdown()
-
-    def parse_radio(self):
-        radio_receive = self.device_factory.radio.receive()
-        if (radio_receive == '') or (radio_receive == None):
-            e = "empty string received"
-            logging.error('Radio receive error: {}, received: {}'.format(e, radio_receive))
-        else:
-            self.radio_msg = {
-                'action': radio_receive['action'].encode('ascii'),
-                'data': radio_receive['data'].encode('ascii')
+    def notify_armed(self):
+        self.device_factory.radio.transmit(
+            self.device_factory.radio.ACTION_TRANSITION,
+            data= {
+                'last_state': self.last_state,
+                'event': 'armed',
+                'time': time.time()
             }
+        )
 
+    def notify_launch(self):
+        self.device_factory.radio.transmit(
+            self.device_factory.radio.ACTION_TRANSITION,
+            data= {
+                'last_state': self.last_state,
+                'event': 'launch',
+                'time': time.time()
+            }
+        )
+
+    def notify_burnout(self):
+        self.device_factory.radio.transmit(
+            self.device_factory.radio.ACTION_TRANSITION,
+            data= {
+                'last_state': self.last_state,
+                'event': 'burnout',
+                'time': time.time()
+            }
+        )
+
+    def notify_apogee(self):
+        self.device_factory.radio.transmit(
+            self.device_factory.radio.ACTION_TRANSITION,
+            data= {
+                'last_state': self.last_state,
+                'event': 'apogee',
+                'time': time.time()
+            }
+        )
+
+    def notify_touchdown(self):
+        self.device_factory.radio.transmit(
+            self.device_factory.radio.ACTION_TRANSITION,
+            data= {
+                'last_state': self.last_state,
+                'event': 'touchdown',
+                'time': time.time(),
+            }
+        )
+
+    def position_report(self):
+        self.device_factory.radio.transmit(
+            self.device_factory.radio.ACTION_POSITION_REPORT,
+            data={
+                'gps': self.device_factory.gps.read(),
+                'acceleration': self.kinetics.acceleration(),
+                'velocity': self.kinetics.velocity(),
+                'position': self.kinetics.position(),
+                'altitude': self.device_factory.altimeter.read_altitude(),
+            }
+        )
 
     def run(self):
         while self.active:
@@ -138,11 +193,8 @@ class Rocket(object):
                 self.during_powered()
             elif self.state == 'coast':
                 self.during_coast()
-            elif self.state == 'descent_drogue':
-                self.during_descent_drogue()
-            elif self.state == 'descent_main':
-                self.during_descent_main()
-
+            elif self.state == 'descent':
+                self.during_descent()
 
 if __name__ == '__main__':
     device_factory = None

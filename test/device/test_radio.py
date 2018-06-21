@@ -28,8 +28,8 @@ def test_captures_connecting_message():
     assert message['action'] == expected_message['action']
     assert message['data'] == expected_message['data']
 
-def test_captures_wake_message():
-    expected_message = {'action': Radio.ACTION_WAKE, 'data': []}
+def test_captures_transition_message():
+    expected_message = {'action': Radio.ACTION_TRANSITION, 'data': 'my_state'}
     radio = Radio()
     radio.serial = DummySerial(json.dumps(expected_message))
 
@@ -38,18 +38,8 @@ def test_captures_wake_message():
     assert message['action'] == expected_message['action']
     assert message['data'] == expected_message['data']
 
-def test_captures_sleep_message():
-    expected_message = {'action': Radio.ACTION_SLEEP, 'data': []}
-    radio = Radio()
-    radio.serial = DummySerial(json.dumps(expected_message))
-
-    message = radio.receive()
-
-    assert message['action'] == expected_message['action']
-    assert message['data'] == expected_message['data']
-
-def test_captures_launch_message():
-    expected_message = {'action': Radio.ACTION_LAUNCH, 'data': []}
+def test_captures_arm_message():
+    expected_message = {'action': Radio.ACTION_ARM, 'data': []}
     radio = Radio()
     radio.serial = DummySerial(json.dumps(expected_message))
 
@@ -71,6 +61,17 @@ def test_captures_test_brake_message():
 
 def test_captures_test_report_position_message():
     expected_message = {'action': Radio.ACTION_POSITION_REPORT, 'data': []}
+    radio = Radio()
+    radio.serial = DummySerial(json.dumps(expected_message))
+
+    message = radio.receive()
+
+    assert message['action'] == expected_message['action']
+    assert message['data'] == expected_message['data']
+
+
+def test_captures_test_report_connecting_message():
+    expected_message = {'action': Radio.ACTION_CONNECTING, 'data': []}
     radio = Radio()
     radio.serial = DummySerial(json.dumps(expected_message))
 
