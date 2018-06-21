@@ -33,90 +33,6 @@ def test_connecting_does_not_transition_to_ground_if_radio_does_not_receive_conn
 
     assert rocket.state == 'connecting'
 
-def test_sleep_puts_all_devices_to_sleep(rocket):
-    rocket.state_machine.set_state('ground')
-    assert not rocket.device_factory.altimeter.sleeping
-    assert not rocket.device_factory.imu.sleeping
-    assert not rocket.device_factory.radio.sleeping
-
-    rocket.sleep()
-
-    assert rocket.device_factory.altimeter.sleeping
-    assert rocket.device_factory.imu.sleeping
-    assert rocket.device_factory.radio.sleeping
-
-
-def test_sleep_transitions_to_ground_when_radio_recieves_wake_action(rocket):
-    rocket.state_machine.set_state('ground')
-    def mock_kinetics_acceleration():
-        return { 'x': 0.0, 'y': 0.0, 'z': 1.4 }
-    rocket.kinetics.acceleration = mock_kinetics_acceleration
-    def mock_radio_receive():
-        return { 'action':'wake', 'data': [] }
-    rocket.device_factory.radio.receive = mock_radio_receive
-
-    rocket.sleep()
-    rocket.state_data['last_radio_poll'] = time.time() - 10001
-    rocket.during_sleep()
-
-    assert rocket.state == 'ground'
-    assert not rocket.device_factory.altimeter.sleeping
-    assert not rocket.device_factory.imu.sleeping
-    assert not rocket.device_factory.radio.sleeping
-
-def test_continue_to_sleep_if_radio_does_not_send_wake(rocket):
-    rocket.state_machine.set_state('ground')
-    def mock_kinetics_acceleration():
-        return { 'x': 0.0, 'y': 0.0, 'z': 1.4 }
-    rocket.kinetics.acceleration = mock_kinetics_acceleration
-    def mock_radio_receive():
-        return { 'action':'wuba luba dub dub', 'data': [] }
-    rocket.device_factory.radio.receive = mock_radio_receive
-
-    rocket.sleep()
-    rocket.state_data['last_radio_poll'] = time.time() - 10001
-    rocket.during_sleep()
-
-    assert rocket.state == 'sleep'
-    assert rocket.device_factory.altimeter.sleeping
-    assert rocket.device_factory.imu.sleeping
-    assert rocket.device_factory.radio.sleeping
-
-def test_continue_to_sleep_if_polled_within_last_10000_seconds(rocket):
-    rocket.state_machine.set_state('ground')
-    def mock_kinetics_acceleration():
-        return { 'x': 0.0, 'y': 0.0, 'z': 1.4 }
-    rocket.kinetics.acceleration = mock_kinetics_acceleration
-    def mock_radio_receive():
-        return { 'action':'wake', 'data': [] }
-    rocket.device_factory.radio.receive = mock_radio_receive
-
-    rocket.sleep()
-    rocket.state_data['last_radio_poll'] = time.time() - 9995
-    rocket.during_sleep()
-
-    assert rocket.state == 'sleep'
-    assert rocket.device_factory.altimeter.sleeping
-    assert rocket.device_factory.imu.sleeping
-    assert rocket.device_factory.radio.sleeping
-
-def test_ground_transitions_to_sleep_when_radio_receives_sleep_action(rocket):
-    rocket.state_machine.set_state('ground')
-    def mock_kinetics_acceleration():
-        return { 'x': 0.0, 'y': 0.0, 'z': 1.4 }
-    rocket.kinetics.acceleration = mock_kinetics_acceleration
-    def mock_radio_receive():
-        return { 'action':'sleep', 'data': [] }
-    rocket.device_factory.radio.receive = mock_radio_receive
-
-    rocket.during_ground()
-
-    assert rocket.state == 'sleep'
-    assert rocket.device_factory.altimeter.sleeping
-    assert rocket.device_factory.imu.sleeping
-    assert rocket.device_factory.radio.sleeping
-
-
 def test_ground_transitions_to_powered_when_radio_receives_launch_action(rocket):
     rocket.state_machine.set_state('ground')
     def mock_kinetics_acceleration():
@@ -276,10 +192,6 @@ def test_valid_transitions(rocket):
     assert rocket.state == 'connecting'
     rocket.connected()
     assert rocket.state == 'ground'
-    rocket.sleep()
-    assert rocket.state == 'sleep'
-    rocket.wake()
-    assert rocket.state == 'ground'
     rocket.launch()
     assert rocket.state == 'powered'
     rocket.burnout()
@@ -290,7 +202,5 @@ def test_valid_transitions(rocket):
     assert rocket.state == 'descent_main'
     rocket.touchdown()
     assert rocket.state == 'ground'
-    rocket.sleep()
-    assert rocket.state == 'sleep'
     rocket.wake()
     assert rocket.state == 'ground'

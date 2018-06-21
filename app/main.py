@@ -11,7 +11,6 @@ from app.rocket.kinetics import Kinetics
 class Rocket(Thread):
     states = [
         State(name='connecting',     on_enter=['enter_state']),
-        State(name='sleep',          on_enter=['enter_state', 'enter_sleep'], on_exit='exit_sleep'),
         State(name='ground',         on_enter=['enter_state']),
         State(name='powered',        on_enter=['enter_state']),
         State(name='coast',          on_enter=['enter_state']),
@@ -25,8 +24,6 @@ class Rocket(Thread):
         { 'trigger': 'deploy_drogue', 'source': 'coast', 'dest': 'descent_drogue' },
         { 'trigger': 'deploy_main', 'source': 'descent_drogue', 'dest': 'descent_main' },
         { 'trigger': 'touchdown', 'source': 'descent_main', 'dest': 'ground' },
-        { 'trigger': 'sleep', 'source': 'ground', 'dest': 'sleep' },
-        { 'trigger': 'wake', 'source': 'sleep', 'dest': 'ground' }
     ]
 
     def __init__(self, device_factory, log_level=logging.INFO, log_dir='app/logs'):
@@ -76,29 +73,6 @@ class Rocket(Thread):
         }
         self.state_data = {}
 
-    def enter_sleep(self):
-        self.kinetics.deactivate()
-        self.device_factory.sleep_all()
-        self.state_data['last_radio_poll'] = time.time()
-
-    def during_sleep(self):
-        RADIO_POLLING_RATE = 10000 # seconds
-        RADIO_POLL_DURATION = 15
-
-        if time.time() - self.state_data['last_radio_poll'] >= RADIO_POLLING_RATE:
-            self.device_factory.radio.wake()
-            time.sleep(RADIO_POLL_DURATION)
-            message = self.device_factory.radio.receive()
-            if message['action'] == self.device_factory.radio.ACTION_WAKE:
-                self.wake()
-            else:
-                self.state_data['last_radio_poll'] = time.time()
-                self.device_factory.radio.sleep()
-
-    def exit_sleep(self):
-        self.device_factory.wake_all()
-        self.kinetics.activate()
-
     def during_connecting(self):
         RADIO_CONNECTION_TIMEOUT = 15
         self.device_factory.radio.transmit(self.device_factory.radio.ACTION_CONNECTING)
@@ -128,8 +102,7 @@ class Rocket(Thread):
         APOGEE_VELOCTY_THRESHOLD = 8 # m/s
         COAST_TIME = 24.5 # s
         self.device_factory.brakes.deploy(self.kinetics.compute_brakes_percentage())
-        if self.kinetics.velocity()['z'] <= APOGEE_VELOCTY_THRESHOLD
-         or time.time() - self.last_state['time'] > COAST_TIME:
+        if self.kinetics.velocity()['z'] <= APOGEE_VELOCTY_THRESHOLD or time.time() - self.last_state['time'] > COAST_TIME:
             self.deploy_drogue()
             self.device_factory.brakes.deploy(0.0)
 
@@ -165,8 +138,6 @@ class Rocket(Thread):
         while self.active:
             if self.state == 'connecting':
                 self.during_connecting()
-            elif self.state == 'sleep':
-                self.during_sleep()
             elif self.state == 'ground':
                 self.during_ground()
             elif self.state == 'powered':

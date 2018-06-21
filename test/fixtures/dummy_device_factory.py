@@ -34,7 +34,7 @@ class DummyAltimeter(object):
         self.sleeping = False
         self.bar_setting = 1.019
 
-    def read(self):
+    def read_altitude(self):
         return round(random.uniform(-100,2000),4),
 
     def get_bar_setting(self):
