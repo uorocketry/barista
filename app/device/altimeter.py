@@ -23,21 +23,26 @@ class Altimeter(object):
         self.bus.write_byte(CTRL_REG1, 0xB9) #activate polling
 
         status = self.bus.read_byte(STATUS_REG)
+
         while (status & 0x08) == False:
             status = self.bus.read_byte(STATUS_REG)
             sleep(0.5)
 
+        self.reset_bar_input()
+
     def read_altitude(self):
         raw_data = self.bus.read_block(OUT_P_MSB, 3)
-        return Altimeter.parse_raw_data(raw_data)
+        return (Altimeter.parse_raw_data(raw_data)-self.init_height) # m
 
     def read_temp(self):
         raw_data = self.bus.read_block(OUT_T_MSB, 2)
-        return Altimeter.parse_raw_data(raw_data)
+        return Altimeter.parse_raw_data(raw_data) # degrees C
 
     def reset_bar_input(self):
         self.bus.write_byte(0x14, 0xC5)
         self.bus.write_byte(0x15, 0xE7)
+
+        self.init_height = self.read_altitude()
 
     def read_bar_setting(self):
         setting = self.bus.read_block(BAR_IN_MSB, 2)
