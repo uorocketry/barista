@@ -137,7 +137,7 @@ class Rocket(Thread):
     def during_descent_drogue(self):
         DECENT_DROGUE_TIME = 100 # sec
         DEPLOY_MAIN_ALTITUDE = 1700 # feet
-        if self.device_factory.altimeter.read() < DEPLOY_MAIN_ALTITUDE or time.time() - self.last_state['time'] >= DECENT_DROGUE_TIME:
+        if self.device_factory.altimeter.read_altitude() < DEPLOY_MAIN_ALTITUDE or time.time() - self.last_state['time'] >= DECENT_DROGUE_TIME:
             self.deploy_main()
 
     def on_enter_descent_main(self):
