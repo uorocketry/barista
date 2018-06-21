@@ -28,6 +28,7 @@ class Altimeter(object):
             status = self.bus.read_byte(STATUS_REG)
             sleep(0.5)
 
+        self.init_height = 0.0
         self.reset_bar_input()
 
     def read_altitude(self):
