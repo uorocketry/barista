@@ -126,8 +126,10 @@ class Rocket(Thread):
 
     def during_coast(self):
         APOGEE_VELOCTY_THRESHOLD = 8 # m/s
+        COAST_TIME = 24.5 # s
         self.device_factory.brakes.deploy(self.kinetics.compute_brakes_percentage())
-        if self.kinetics.velocity()['z'] <= APOGEE_VELOCTY_THRESHOLD:
+        if self.kinetics.velocity()['z'] <= APOGEE_VELOCTY_THRESHOLD
+         or time.time() - self.last_state['time'] > COAST_TIME:
             self.deploy_drogue()
             self.device_factory.brakes.deploy(0.0)
 
