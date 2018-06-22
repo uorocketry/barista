@@ -24,8 +24,8 @@ def test_random_nmea():
         'satelites': 8,
         'time (UTC)': '23:35:19',
         'altitude (ASL)': 545.4,
-        'latitude (deg)': 48.0,
-        'latitude (min)': 7.038,
+        'latitude (deg)': 4.80,
+        'latitude (min)': 0.7038,
         'latitude (dir)': 'N',
         'longitude (deg)': 11.0,
         'longitude (min)': 31.0,
@@ -47,12 +47,6 @@ def test_empty_strings():
     }
 
     assert GPS.parse_raw_data(raw_data) == expected_data
-
-
-def test_ottawa_nmea():
-    # TODO replace with scentence from actual data from device
-    assert True
-
 
 def test_log_errors_in_parse_raw_data():
     expected_data = {

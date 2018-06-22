@@ -72,11 +72,6 @@ class IMU(object):
         data = self.i2c.read_block(0x00, self.read_length)
         return data
 
-
-    def sleep(self):
-        #TODO: implement me
-        pass
-
     def parse_byte_array(self,array):
         a = []
         for i in range(self.read_length/4):

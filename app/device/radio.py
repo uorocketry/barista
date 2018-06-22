@@ -4,14 +4,13 @@ import logging
 import json
 
 class Radio(object):
-    ACTION_WAKE='wake'
-    ACTION_SLEEP='sleep'
-    ACTION_LAUNCH='launch'
+    ACTION_TRANSITION='transition'
+    ACTION_ARM='arm'
     ACTION_TEST_BRAKES='test_brakes'
     ACTION_POSITION_REPORT='position_report'
     ACTION_CONNECTING='connecting'
 
-    VALID_ACTIONS=[ACTION_WAKE, ACTION_SLEEP, ACTION_LAUNCH, ACTION_TEST_BRAKES, ACTION_POSITION_REPORT, ACTION_CONNECTING]
+    VALID_ACTIONS=[ACTION_TRANSITION, ACTION_ARM, ACTION_TEST_BRAKES, ACTION_POSITION_REPORT, ACTION_CONNECTING]
 
     def __init__(self, port='/dev/ttyUSB0',baud=9600):
         try:
@@ -60,11 +59,3 @@ class Radio(object):
 
     def connected(self):
         return self.serial != None and self.serial.is_open
-
-    def sleep(self):
-        #TODO: make it sleep
-        return
-
-    def wake(self):
-        #TODO: make it wake up from sleep
-        return

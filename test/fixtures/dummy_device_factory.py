@@ -12,7 +12,7 @@ class DummyIMU(object):
                 'x': 0.0,
                 'y': 0.0,
                 'z': 0.0,
-                'time':time()
+                'time': time()
             }
         else:
             return {
@@ -35,7 +35,7 @@ class DummyAltimeter(object):
         self.bar_setting = 1.019
 
     def read_altitude(self):
-        return round(random.uniform(-100,2000),4),
+        return round(random.uniform(-100,2000),4)
 
     def get_bar_setting(self):
         return self.bar_setting
@@ -49,14 +49,16 @@ class DummyAltimeter(object):
     def wake(self):
         self.sleeping = False
 
+    def reset_bar_input(self):
+        return None
+
 
 class DummyRadio(object):
-    ACTION_WAKE='wake'
-    ACTION_SLEEP='sleep'
-    ACTION_LAUNCH='launch'
+    ACTION_TRANSITION='transition'
+    ACTION_ARM='arm'
     ACTION_TEST_BRAKES='test_brakes'
-    ACTION_CONNECTING='connecting'
     ACTION_POSITION_REPORT='position_report'
+    ACTION_CONNECTING='connecting'
 
     def __init__(self):
         self.sleeping = False

@@ -14,7 +14,6 @@ class DeviceFactory(object):
         self.brakes = Brakes()
 
         self.gps = GPS()
-        self.parachute = Parachute()
         self.radio = Radio()
 
     def sleep_all(self):

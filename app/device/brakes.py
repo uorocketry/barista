@@ -6,9 +6,11 @@ from app.utils.exceptions import InvalidArguments
 
 SERVO_PIN = 21 # physical pin 12
 
+ZERO_OFFSET = 0.2
+
 class Brakes(object):
     def __init__(self):
-        self.percentage = 0
+        self.percentage = 0.0
         self.servo = Servo(SERVO_PIN)
         self.servo.write(0)
 
@@ -18,7 +20,7 @@ class Brakes(object):
             logging.error('Brakes deploy error: {}, percentage: {}'.format(e, percentage))
         else:
             self.percentage = percentage
-            self.servo.write(percentage)
+            self.servo.write((1.0 - ZERO_OFFSET) * percentage + ZERO_OFFSET)
 
     def sweep(self):
         self.deploy(0)
