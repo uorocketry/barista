@@ -197,13 +197,8 @@ class Rocket(object):
                 self.during_descent()
 
 if __name__ == '__main__':
-    device_factory = None
-    if os.environ.has_key('ROCKET_PRODUCTION'):
-        from app.rocket.device_factory import DeviceFactory
-        device_factory = DeviceFactory()
-    else:
-        from test.fixtures.dummy_device_factory import DummyDeviceFactory
-        device_factory = DummyDeviceFactory()
+    from app.rocket.device_factory import DeviceFactory
+    device_factory = DeviceFactory()
 
     rocket = Rocket(device_factory)
     try:
