@@ -4,6 +4,7 @@ from collections import deque
 import numpy as np
 import logging
 import time
+import math
 
 WINDOW_SIZE = 50
 
@@ -32,17 +33,17 @@ class Kinetics(Thread):
             if self.is_alive():
                 raise Exception('Failed to deactivate Kinetics Model')
 
-    def predicted_apogee(self):
-        return 0
+    def predicted_apogee(self, brake_percentage):
+        drag_coef = 0.009121*(brake_percentage + 0.485)
+        gravity = 9.81*22
+        n_2 = drag_coef / gravity
+        return  self.vertical_position - math.log(match.cos(math.atan(2*math.sqrt(n_2)*self.vertical_velocity))) / ((9.81**2)*n_2)
 
     def vertical_velocity(self):
         return self.vertical_velocity_window.last()
 
     def vertical_position(self):
         return self.vertical_position_window.last()
-
-    def compute_brakes_percentage(self):
-        return 0.0
 
     def run(self):
         while self.active:

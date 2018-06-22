@@ -95,7 +95,7 @@ class Rocket(object):
 
     def during_armed(self):
         LAUNCH_ACCELERATION_THRESHOLD = 5 # m/s^2
-        if self.kinetics.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
+        if self.device_factory.imu.acceleration()['z'] > LAUNCH_ACCELERATION_THRESHOLD:
             self.launch()
 
     def during_powered(self):
@@ -109,12 +109,18 @@ class Rocket(object):
         BRAKE_VELOCTY_THRESHOLD = 250 # m/s
         DESCENT_VELOCITY_THRESHOLD = -4
         if self.kinetics.velocity()['z'] <= BRAKE_VELOCTY_THRESHOLD:
-            self.device_factory.brakes.deploy(self.kinetics.compute_brakes_percentage())
+            error = 3048 - self.predicted_apogee(self.device_factory.brakes.percentage)
+            new_percentage = self.device_factory.brakes.percentage + 0.001 * error
+            if new_percentage > 1.0
+                new_percentage = 1.0
+            elif new_percentage < 0.0
+                new_percentage = 0.0
+
+            self.device_factory.brakes.deploy(new_percentage)
         else:
             self.device_factory.brakes.deploy(0.0)
 
         if self.kinetics.vertical_velocity() <= DESCENT_VELOCITY_THRESHOLD:
-            self.device_factory.brakes.deploy(0.0)
             self.apogee()
 
     def during_descent(self):
