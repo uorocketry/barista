@@ -8,7 +8,7 @@ from threading import Thread
 from app.rocket.kinetics import Kinetics
 
 
-class Rocket(Thread):
+class Rocket(object):
     states = [
         State(name='connecting',     on_enter=['enter_state']),
         State(name='ground',         on_enter=['enter_state']),
@@ -51,20 +51,13 @@ class Rocket(Thread):
         self.active = False
 
     def activate(self):
-        if not self.active:
-            Thread.__init__(self)
-            self.active = True
-            self.start()
-            if not self.is_alive():
-                raise Exception('Failed to activate rocket model')
+        self.active = True
+        self.run()
 
     def deactivate(self):
-        if self.active:
-            self.kinetics.deactivate()
-            self.active = False
-            self.join(timeout=6)
-            if self.is_alive():
-                raise Exception('Failed to deactivate rocket model')
+        logging.info('Shutting down rocket')
+        self.kinetics.deactivate()
+        self.active = False
 
     def enter_state(self):
         self.last_state = {
@@ -160,4 +153,7 @@ if __name__ == '__main__':
         device_factory = DummyDeviceFactory()
 
     rocket = Rocket(device_factory)
-    rocket.activate()
+    try:
+        rocket.activate()
+    except KeyboardInterrupt:
+        rocket.deactivate()
