@@ -13,7 +13,7 @@ class Radio(object):
 
     VALID_ACTIONS=[ACTION_WAKE, ACTION_SLEEP, ACTION_LAUNCH, ACTION_TEST_BRAKES, ACTION_POSITION_REPORT, ACTION_CONNECTING]
 
-    def __init__(self, port='/dev/ttyUSB0',baud=9600):
+    def __init__(self, port='/dev/ttyS4',baud=9600):
         try:
             self.serial = serial.Serial(port,baud,timeout=1)
             logging.info("Radio Initialized")
