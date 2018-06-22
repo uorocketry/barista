@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function
 import sys
 import logging
 from app.device.radio import Radio
@@ -25,7 +26,7 @@ class Client(object):
             message = self.radio.receive()
             if message['action'] == Radio.ACTION_CONNECTING:
                 print('Connected to rocket')
-                self.radio.transmit(Radio.ACTION_CONNECTING, True)
+                self.radio.transmit(Radio.ACTION_CONNECTING)
                 self.connected = True
 
     def run(self):
@@ -35,7 +36,7 @@ class Client(object):
 
         action = prompt(u'> ', history=self.history, completer=self.completer)
         if action in Radio.VALID_ACTIONS:
-            self.radio.transmit(action, [])
+            self.radio.transmit(action)
         elif action == 'help':
             print('The following are availible radio actions: {}'.format(Radio.VALID_ACTIONS))
         else:
