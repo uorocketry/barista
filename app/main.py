@@ -43,7 +43,11 @@ class Rocket(object):
             filename='{}/{}.log'.format(log_dir, int(time.time())),
             level=log_level
         )
+        logging.getLogger().addHandler(logging.FileHandler('{}/{}.log'.format(log_dir, int(time.time()))))
+        logging.getLogger().setLevel(20)
+
         logging.info('Initialized Rocket')
+
 
         self.kinetics = Kinetics(device_factory)
         self.device_factory = device_factory
