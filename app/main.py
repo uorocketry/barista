@@ -176,11 +176,9 @@ class Rocket(object):
             self.device_factory.radio.ACTION_POSITION_REPORT,
             data={
                 'gps': self.device_factory.gps.read(),
-                'acceleration': self.kinetics.acceleration(),
-                'velocity': self.kinetics.velocity(),
-                'position': self.kinetics.position(),
-                'altitude': self.device_factory.altimeter.read_altitude(),
-            }
+                'acceleration': self.device_factory.imu.read_accel_filtered(),
+                'velocity': self.kinetics.vertical_velocity(),
+                'altitude': self.kinetics.vertical_position(),
         )
 
     def run(self):
