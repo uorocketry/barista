@@ -9,6 +9,8 @@ ADDR_BYTE = 0xEE
 
 
 VALID_COMMANDS = {
+    'set_axis_directions' :{ 'command':0x74, 'length':1},
+    'tare_current_orientation' :{'command':0x60, 'length':0},
     'read_temp_c' :{ 'command':0x2B, 'length':1},
     'read_accel_filtered' :{ 'command':0x27, 'length':3},
     'read_orientation_euler':{'command': 0x01, 'length':3},
@@ -16,12 +18,16 @@ VALID_COMMANDS = {
 
 
 class IMU(object):
-
-
     def __init__(self):
         self.i2c = I2C(1, ADDRESS)
         self.read_length = 0
 
+        self.set_axis_directions_with_tare()
+
+    def set_axis_directions_with_tare(self):
+        axis_direction = 0b00000101
+        self.send_command('set_axis_directions', axis_direction)
+        self.send_command('tare_current_orientation')
 
     #sample sensor read functions
     def read_temp_c(self):
